@@ -3,6 +3,9 @@ html, body {
   padding: 0;
 }
 
+/* Place canvas in the center of the screen */
 canvas {
   display: block;
+  margin: 0 auto;
 }
+
