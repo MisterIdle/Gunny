@@ -29,6 +29,7 @@ class Player {
     this.rotationAngle = 0.0;
     this.direction = 0;
     this.isControllingEnemy = false;
+    this.horizontalSpeed = -1;
   }
 
   handleInput() {
@@ -64,6 +65,12 @@ class Player {
     if (this.y < height - 75) {
       this.y += this.gravity;
     }
+    
+    this.x += this.horizontalSpeed;
+    this.horizontalSpeed -= 0.0001;
+    
+    this.horizontalSpeed = constrain(this.horizontalSpeed, -3, 3);
+    text(this.horizontalSpeed, 10, 10);
   }
 
   jump() {
