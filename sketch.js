@@ -1,4 +1,7 @@
 let player;
+let squares = [];
+let lastSpawnTime = 0;
+const spawnInterval = 5000;
 
 function setup() {
   createCanvas(1000, 700);
@@ -14,6 +17,19 @@ function draw() {
   player.handleInput();
   player.update();
   player.display();
+
+  if (millis() - lastSpawnTime > spawnInterval) {
+    squares.push(new Enemy());
+    lastSpawnTime = millis();
+  }
+
+  for (let i = squares.length - 1; i >= 0; i--) {
+    squares[i].update();
+    squares[i].display();
+    if (squares[i].x < -50) {
+      squares.splice(i, 1);
+    }
+  }
 }
 
 class Player {
@@ -71,6 +87,15 @@ class Player {
     
     this.horizontalSpeed = constrain(this.horizontalSpeed, -3, 3);
     text(this.horizontalSpeed, 10, 10);
+    
+    // Check for collision with enemies
+    for (let i = squares.length - 1; i >= 0; i--) {
+      if (this.y <= squares[i].y + 50 && this.y + 50 >= squares[i].y && this.x <= squares[i].x + 50 && this.x + 50 >= squares[i].x) {
+        if (this.isJumping) {
+          squares[i].turnGreen(); // Turn the enemy green if jumped on
+        }
+      }
+    }
   }
 
   jump() {
@@ -100,5 +125,32 @@ class Player {
     rotate(radians(this.rotationAngle));
     rect(0, 0, 50, 50);
     pop();
+  }
+}
+
+class Enemy {
+  constructor() {
+    this.x = width;
+    this.y = height - 75;
+    this.speed = random(1, 3);
+    this.isGreen = false; // Flag to track if the enemy is green
+  }
+
+  update() {
+    this.x -= this.speed;
+  }
+
+  display() {
+    if (this.isGreen) {
+      fill(0, 255, 0); // Green color if flag is true
+    } else {
+      fill(255, 0, 0);
+    }
+    rect(this.x, this.y, 50, 50);
+  }
+  
+  // Method to turn the enemy green
+  turnGreen() {
+    this.isGreen = true;
   }
 }
