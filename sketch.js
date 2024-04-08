@@ -1,5 +1,6 @@
 let player;
 let squares = [];
+let controlledEnemy = null;
 let lastSpawnTime = 0;
 const spawnInterval = 5000;
 
@@ -28,6 +29,11 @@ function draw() {
     squares[i].display();
     if (squares[i].x < -50) {
       squares.splice(i, 1);
+    }
+    
+    if (controlledEnemy === squares[i]) {
+      squares[i].handleControl();
+      player.x = squares[i].x; // Mise à jour de la position du joueur pour le maintenir collé à l'ennemi contrôlé
     }
   }
 }
@@ -61,6 +67,13 @@ class Player {
 
     let distanceX = mouseX - this.x;
     this.jumpLength = map(abs(distanceX), 0, width, 0, 10);
+
+    // Supprimer l'ennemi contrôlé lorsqu'on appuie sur la touche espace
+    if (keyIsDown(32) && this.isControllingEnemy) {
+      squares.splice(squares.indexOf(controlledEnemy), 1);
+      controlledEnemy = null;
+      this.isControllingEnemy = false;
+    }
   }
 
   update() {
@@ -88,11 +101,12 @@ class Player {
     this.horizontalSpeed = constrain(this.horizontalSpeed, -3, 3);
     text(this.horizontalSpeed, 10, 10);
     
-    // Check for collision with enemies
     for (let i = squares.length - 1; i >= 0; i--) {
       if (this.y <= squares[i].y + 50 && this.y + 50 >= squares[i].y && this.x <= squares[i].x + 50 && this.x + 50 >= squares[i].x) {
         if (this.isJumping) {
-          squares[i].turnGreen(); // Turn the enemy green if jumped on
+          squares[i].turnGreen();
+          controlledEnemy = squares[i];
+          this.isControllingEnemy = true;
         }
       }
     }
@@ -133,7 +147,7 @@ class Enemy {
     this.x = width;
     this.y = height - 75;
     this.speed = random(1, 3);
-    this.isGreen = false; // Flag to track if the enemy is green
+    this.isGreen = false;
   }
 
   update() {
@@ -142,15 +156,28 @@ class Enemy {
 
   display() {
     if (this.isGreen) {
-      fill(0, 255, 0); // Green color if flag is true
+      fill(0, 255, 0);
     } else {
       fill(255, 0, 0);
     }
     rect(this.x, this.y, 50, 50);
   }
   
-  // Method to turn the enemy green
   turnGreen() {
     this.isGreen = true;
+  }
+  
+  handleControl() {
+    if (!squares.includes(this)) {
+      // Ne répondez pas aux commandes de déplacement si l'ennemi a été supprimé
+      return;
+    }
+
+    if (keyIsDown(81)) { // Q key
+      this.x -= 3; // Move left
+    }
+    if (keyIsDown(68)) { // D key
+      this.x += 3; // Move right
+    }
   }
 }
