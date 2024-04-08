@@ -4,6 +4,14 @@ let controlledEnemy = null;
 let lastSpawnTime = 0;
 const spawnInterval = 5000;
 
+let duck;
+let mindduck;
+
+function preload() {
+  duck = loadImage('artdev/duck.gif');
+  mindduck = loadImage('artdev/mindduck.gif');
+}
+
 function setup() {
   createCanvas(1000, 700);
   player = new Player(width / 2, height - 75);
@@ -33,7 +41,7 @@ function draw() {
     
     if (controlledEnemy === squares[i]) {
       squares[i].handleControl();
-      player.x = squares[i].x; // Mise à jour de la position du joueur pour le maintenir collé à l'ennemi contrôlé
+      player.x = squares[i].x;
     }
   }
 }
@@ -68,7 +76,6 @@ class Player {
     let distanceX = mouseX - this.x;
     this.jumpLength = map(abs(distanceX), 0, width, 0, 10);
 
-    // Supprimer l'ennemi contrôlé lorsqu'on appuie sur la touche espace
     if (keyIsDown(32) && this.isControllingEnemy) {
       squares.splice(squares.indexOf(controlledEnemy), 1);
       controlledEnemy = null;
@@ -104,9 +111,12 @@ class Player {
     for (let i = squares.length - 1; i >= 0; i--) {
       if (this.y <= squares[i].y + 50 && this.y + 50 >= squares[i].y && this.x <= squares[i].x + 50 && this.x + 50 >= squares[i].x) {
         if (this.isJumping) {
-          squares[i].turnGreen();
           controlledEnemy = squares[i];
           this.isControllingEnemy = true;
+
+          if(this.isControllingEnemy) {
+            squares[i].changeSprite(mindduck);
+          }
         }
       }
     }
@@ -132,22 +142,25 @@ class Player {
   }
 
   display() {
-    fill(0);
-    rectMode(CENTER);
-    push();
-    translate(this.x, this.y);
-    rotate(radians(this.rotationAngle));
-    rect(0, 0, 50, 50);
-    pop();
+    if (!this.isControllingEnemy) {
+        fill(0);
+        rectMode(CENTER);
+        push();
+        translate(this.x, this.y);
+        rotate(radians(this.rotationAngle));
+        rect(0, 0, 50, 50);
+        pop();
+    }
   }
 }
 
 class Enemy {
   constructor() {
     this.x = width;
-    this.y = height - 75;
+    this.y = height - 130;
     this.speed = random(1, 3);
-    this.isGreen = false;
+    this.gif = duck;
+    this.scaleFactor = 1.0;
   }
 
   update() {
@@ -155,29 +168,30 @@ class Enemy {
   }
 
   display() {
-    if (this.isGreen) {
-      fill(0, 255, 0);
-    } else {
-      fill(255, 0, 0);
-    }
-    rect(this.x, this.y, 50, 50);
+    push();
+    translate(this.x, this.y);
+    scale(this.scaleFactor, 1.0);
+    image(this.gif, 0, 0, 100, 100);
+    pop();
   }
-  
-  turnGreen() {
-    this.isGreen = true;
+
+  changeSprite(sprite) {
+    this.gif = sprite;
   }
-  
+
   handleControl() {
     if (!squares.includes(this)) {
-      // Ne répondez pas aux commandes de déplacement si l'ennemi a été supprimé
       return;
     }
 
-    if (keyIsDown(81)) { // Q key
-      this.x -= 3; // Move left
+    if (keyIsDown(81)) { // Touche Q
+      this.x -= 5;
+      this.scaleFactor = 1.0;
     }
-    if (keyIsDown(68)) { // D key
-      this.x += 3; // Move right
+    if (keyIsDown(68)) { // Touche D
+      this.x += 5;
+      this.scaleFactor = -1.0;
     }
   }
 }
+
