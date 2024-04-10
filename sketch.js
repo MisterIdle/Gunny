@@ -1,15 +1,17 @@
 let player;
-let squares = [];
+let enemy = [];
 let controlledEnemy = null;
 let lastSpawnTime = 0;
 const spawnInterval = 5000;
 
 let duck;
 let mindduck;
+let playerSprite;
 
 function preload() {
   duck = loadImage('artdev/duck.gif');
   mindduck = loadImage('artdev/mindduck.gif');
+  playerSprite = loadImage('artdev/gun.gif');
 }
 
 function setup() {
@@ -28,20 +30,20 @@ function draw() {
   player.display();
 
   if (millis() - lastSpawnTime > spawnInterval) {
-    squares.push(new Enemy());
+    enemy.push(new Enemy());
     lastSpawnTime = millis();
   }
 
-  for (let i = squares.length - 1; i >= 0; i--) {
-    squares[i].update();
-    squares[i].display();
-    if (squares[i].x < -50) {
-      squares.splice(i, 1);
+  for (let i = enemy.length - 1; i >= 0; i--) {
+    enemy[i].update();
+    enemy[i].display();
+    if (enemy[i].x < -50) {
+      enemy.splice(i, 1);
     }
     
-    if (controlledEnemy === squares[i]) {
-      squares[i].handleControl();
-      player.x = squares[i].x;
+    if (controlledEnemy === enemy[i]) {
+      enemy[i].handleControl();
+      player.x = enemy[i].x;
     }
   }
 }
@@ -60,6 +62,8 @@ class Player {
     this.direction = 0;
     this.isControllingEnemy = false;
     this.horizontalSpeed = -1;
+    this.sprite = playerSprite;
+    this.isFlipped = false;
   }
 
   handleInput() {
@@ -69,15 +73,17 @@ class Player {
 
     if (mouseX < this.x && !this.haveJumped) {
       this.direction = -this.jumpLength;
+      this.isFlipped = false;
     } else if (mouseX > this.x && !this.haveJumped) {
       this.direction = this.jumpLength;
+      this.isFlipped = true;
     }
 
     let distanceX = mouseX - this.x;
     this.jumpLength = map(abs(distanceX), 0, width, 0, 10);
 
     if (keyIsDown(32) && this.isControllingEnemy) {
-      squares.splice(squares.indexOf(controlledEnemy), 1);
+      enemy.splice(enemy.indexOf(controlledEnemy), 1);
       controlledEnemy = null;
       this.isControllingEnemy = false;
     }
@@ -90,11 +96,9 @@ class Player {
 
       this.x += this.direction;
       this.x = constrain(this.x, 0, width);
-
-      if (this.direction < 0) {
-        this.rotationAngle -= 2;
-      } else if (this.direction > 0) {
-        this.rotationAngle += 2;
+      
+      if (this.y < height - 75) {
+        this.rotationAngle += 12;
       }
     }
 
@@ -106,16 +110,15 @@ class Player {
     this.horizontalSpeed -= 0.0001;
     
     this.horizontalSpeed = constrain(this.horizontalSpeed, -3, 3);
-    text(this.horizontalSpeed, 10, 10);
     
-    for (let i = squares.length - 1; i >= 0; i--) {
-      if (this.y <= squares[i].y + 50 && this.y + 50 >= squares[i].y && this.x <= squares[i].x + 50 && this.x + 50 >= squares[i].x) {
+    for (let i = enemy.length - 1; i >= 0; i--) {
+      if (this.y <= enemy[i].y + 50 && this.y + 50 >= enemy[i].y && this.x <= enemy[i].x + 50 && this.x + 50 >= enemy[i].x) {
         if (this.isJumping) {
-          controlledEnemy = squares[i];
+          controlledEnemy = enemy[i];
           this.isControllingEnemy = true;
 
           if(this.isControllingEnemy) {
-            squares[i].changeSprite(mindduck);
+            enemy[i].changeSprite(mindduck);
           }
         }
       }
@@ -143,24 +146,34 @@ class Player {
 
   display() {
     if (!this.isControllingEnemy) {
-        fill(0);
-        rectMode(CENTER);
+      imageMode(CENTER);
+      if (this.isFlipped) {
         push();
         translate(this.x, this.y);
         rotate(radians(this.rotationAngle));
-        rect(0, 0, 50, 50);
+        scale(-1, 1);
+        image(this.sprite, 0, 0, 100, 100);
         pop();
+      } else {
+        push();
+        translate(this.x, this.y);
+        rotate(radians(-this.rotationAngle));
+        image(this.sprite, 0, 0, 100, 100);
+        pop();
+      }
     }
   }
 }
 
+
 class Enemy {
   constructor() {
     this.x = width;
-    this.y = height - 130;
+    this.y = height - 160;
     this.speed = random(1, 3);
     this.gif = duck;
     this.scaleFactor = 1.0;
+    this.isFlipped = false;
   }
 
   update() {
@@ -169,8 +182,11 @@ class Enemy {
 
   display() {
     push();
-    translate(this.x, this.y);
-    scale(this.scaleFactor, 1.0);
+    translate(this.x + this.gif.width / 2, this.y + this.gif.height / 2);
+    if (this.isFlipped) {
+      scale(-1, 1);
+    }
+    imageMode(CENTER);
     image(this.gif, 0, 0, 100, 100);
     pop();
   }
@@ -180,18 +196,17 @@ class Enemy {
   }
 
   handleControl() {
-    if (!squares.includes(this)) {
+    if (!enemy.includes(this)) {
       return;
     }
 
     if (keyIsDown(81)) { // Touche Q
       this.x -= 5;
-      this.scaleFactor = 1.0;
+      this.isFlipped = false;
     }
     if (keyIsDown(68)) { // Touche D
       this.x += 5;
-      this.scaleFactor = -1.0;
+      this.isFlipped = true;
     }
   }
 }
-
