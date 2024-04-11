@@ -2,7 +2,7 @@ let player;
 let enemy = [];
 let controlledEnemy = null;
 let lastSpawnTime = 0;
-const spawnInterval = 5000;
+const spawnInterval = 2000;
 let bullets = [];
 
 let gameStarted = false;
@@ -12,6 +12,8 @@ let duck;
 let mindduck;
 let playerSprite;
 let bulletSprite;
+
+let startTime;
 
 function preload() {
   duck = loadImage('artdev/duck.gif');
@@ -27,6 +29,13 @@ function setup() {
 
 function draw() {
   background(255);
+
+  if (gameStarted && !gameOver) {
+    seconds = Math.floor((millis() - startTime) / 1000);
+    textSize(24);
+    textAlign(LEFT, TOP);
+    text("Time: " + seconds, 10, 10);
+  }
   
   if (!gameStarted) {
     textSize(24);
@@ -39,6 +48,7 @@ function draw() {
     textAlign(CENTER, CENTER);
     text("Game Over", width / 2, height / 2);
     text("Press R to restart", width / 2, height / 2 + 50);
+    text("Time: " + seconds, width / 2, height / 2 + 100);
 
     if (keyIsDown(82)) {
       player = new Player(width / 2, height - 75);
@@ -76,6 +86,18 @@ function draw() {
     }
   }
   
+  if (controlledEnemy && !gameOver) {
+    for (let i = bullets.length - 1; i >= 0; i--) {
+      let bullet = bullets[i];
+      if (bullet.x <= player.x + 50 && bullet.x + 50 >= player.x && bullet.y <= player.y + 50 && bullet.y + 50 >= player.y) {
+        gameOver = true;
+        enemy.splice(enemy.indexOf(controlledEnemy), 1);
+        controlledEnemy = null;
+        break;
+      }
+    }
+  }
+
   for (let i = bullets.length - 1; i >= 0; i--) {
     bullets[i].update();
     bullets[i].display();
@@ -84,7 +106,6 @@ function draw() {
     }
   }
 }
-
 
 class Player {
   constructor(x, y) {
@@ -107,6 +128,11 @@ class Player {
   handleInput() {
     if (keyIsDown(32) && !this.isJumping && this.y >= height - 75 && !gameOver) {
       this.isJumping = true;
+      
+      if(!gameStarted) {
+        startTime = millis();
+      }
+      
       gameStarted = true;
     }
 
@@ -262,8 +288,10 @@ class Enemy {
 
   shoot() {
     if (this !== controlledEnemy) {
+      if (controlledEnemy && abs(controlledEnemy.x - this.x) > 200) {
         let bullet = new Bullet(this.x + 55, this.y + 80);
         bullets.push(bullet);
+      }
     }
   }
 }
