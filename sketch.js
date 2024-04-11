@@ -5,6 +5,7 @@ let lastSpawnTime = 0;
 const spawnInterval = 5000;
 
 let gameStarted = false;
+let gameOver = false;
 
 let duck;
 let mindduck;
@@ -28,6 +29,22 @@ function draw() {
     textSize(24);
     textAlign(CENTER, CENTER);
     text("Press space to start", width / 2, height / 2);
+  }
+
+  if (gameOver) {
+    textSize(24);
+    textAlign(CENTER, CENTER);
+    text("Game Over", width / 2, height / 2);
+    text("Press R to restart", width / 2, height / 2 + 50);
+
+    if (keyIsDown(82)) {
+      player = new Player(width / 2, height - 75);
+      enemy = [];
+      controlledEnemy = null;
+      lastSpawnTime = 0;
+      gameStarted = false;
+      gameOver = false;
+    }
   }
 
   fill(0);
@@ -56,6 +73,7 @@ function draw() {
   }
 }
 
+
 class Player {
   constructor(x, y) {
     this.x = x;
@@ -75,7 +93,7 @@ class Player {
   }
 
   handleInput() {
-    if (keyIsDown(32) && !this.isJumping && this.y >= height - 75) {
+    if (keyIsDown(32) && !this.isJumping && this.y >= height - 75 && !gameOver) {
       this.isJumping = true;
       gameStarted = true;
     }
@@ -91,7 +109,7 @@ class Player {
     let distanceX = mouseX - this.x;
     this.jumpLength = map(abs(distanceX), 0, width, 0, 10);
 
-    if (keyIsDown(32) && this.isControllingEnemy) {
+    if (this.isControllingEnemy && keyIsDown(32)) {
       enemy.splice(enemy.indexOf(controlledEnemy), 1);
       controlledEnemy = null;
       this.isControllingEnemy = false;
@@ -102,32 +120,30 @@ class Player {
     if (this.isJumping) {
       this.haveJumped = true;
       this.jump();
-
+  
       this.x += this.direction;
       this.x = constrain(this.x, 0, width);
-      
+  
       if (this.y < height - 75) {
         this.rotationAngle += 12;
       }
     }
-
+  
     if (this.y < height - 75) {
       this.y += this.gravity;
     }
-    
-    if(gameStarted) {
-      this.x += this.horizontalSpeed;
-      this.horizontalSpeed -= 0.0001;
+  
+    if (this.x <= 0 || this.x >= width) {
+      gameOver = true;
     }
-    
-    this.horizontalSpeed = constrain(this.horizontalSpeed, -3, 3);
-    
+  
     for (let i = enemy.length - 1; i >= 0; i--) {
+
       if (this.y <= enemy[i].y + 50 && this.y + 50 >= enemy[i].y && this.x <= enemy[i].x + 50 && this.x + 50 >= enemy[i].x) {
         if (this.isJumping) {
           controlledEnemy = enemy[i];
           this.isControllingEnemy = true;
-
+  
           if(this.isControllingEnemy) {
             enemy[i].changeSprite(mindduck);
           }
@@ -135,6 +151,7 @@ class Player {
       }
     }
   }
+  
 
   jump() {
     this.y -= this.jumpForce;
@@ -144,10 +161,12 @@ class Player {
       this.y = height - 75;
       this.jumpForce = 15;
 
-      if (this.rotationAngle < 0) {
+      if (this.rotationAngle < 0 && !this.isControllingEnemy) {
         this.rotationAngle = 2;
-      } else if (this.rotationAngle > 0) {
+        gameOver = true;
+      } else if (this.rotationAngle > 0 && !this.isControllingEnemy) {
         this.rotationAngle = -2;
+        gameOver = true;
       }
 
       this.isJumping = false;
@@ -223,3 +242,4 @@ class Enemy {
     }
   }
 }
+
