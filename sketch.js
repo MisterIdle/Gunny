@@ -4,6 +4,8 @@ let controlledEnemy = null;
 let lastSpawnTime = 0;
 const spawnInterval = 5000;
 
+let gameStarted = false;
+
 let duck;
 let mindduck;
 let playerSprite;
@@ -22,6 +24,12 @@ function setup() {
 function draw() {
   background(255);
   
+  if (!gameStarted) {
+    textSize(24);
+    textAlign(CENTER, CENTER);
+    text("Press space to start", width / 2, height / 2);
+  }
+
   fill(0);
   rect(0, height - 50, height * 3, 2);
 
@@ -68,7 +76,8 @@ class Player {
 
   handleInput() {
     if (keyIsDown(32) && !this.isJumping && this.y >= height - 75) {
-      this.isJumping = true; 
+      this.isJumping = true;
+      gameStarted = true;
     }
 
     if (mouseX < this.x && !this.haveJumped) {
@@ -106,8 +115,10 @@ class Player {
       this.y += this.gravity;
     }
     
-    this.x += this.horizontalSpeed;
-    this.horizontalSpeed -= 0.0001;
+    if(gameStarted) {
+      this.x += this.horizontalSpeed;
+      this.horizontalSpeed -= 0.0001;
+    }
     
     this.horizontalSpeed = constrain(this.horizontalSpeed, -3, 3);
     
@@ -199,6 +210,8 @@ class Enemy {
     if (!enemy.includes(this)) {
       return;
     }
+
+    this.speed = 0;
 
     if (keyIsDown(81)) { // Touche Q
       this.x -= 5;
