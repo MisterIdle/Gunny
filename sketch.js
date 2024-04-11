@@ -3,6 +3,7 @@ let enemy = [];
 let controlledEnemy = null;
 let lastSpawnTime = 0;
 const spawnInterval = 5000;
+let bullets = [];
 
 let gameStarted = false;
 let gameOver = false;
@@ -10,11 +11,13 @@ let gameOver = false;
 let duck;
 let mindduck;
 let playerSprite;
+let bulletSprite;
 
 function preload() {
   duck = loadImage('artdev/duck.gif');
   mindduck = loadImage('artdev/mindduck.gif');
   playerSprite = loadImage('artdev/gun.gif');
+  bulletSprite = loadImage('artdev/bullet.png')
 }
 
 function setup() {
@@ -40,6 +43,7 @@ function draw() {
     if (keyIsDown(82)) {
       player = new Player(width / 2, height - 75);
       enemy = [];
+      bullets = [];
       controlledEnemy = null;
       lastSpawnTime = 0;
       gameStarted = false;
@@ -69,6 +73,14 @@ function draw() {
     if (controlledEnemy === enemy[i]) {
       enemy[i].handleControl();
       player.x = enemy[i].x;
+    }
+  }
+  
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    bullets[i].update();
+    bullets[i].display();
+    if (bullets[i].x < 0) {
+      bullets.splice(i, 1);
     }
   }
 }
@@ -204,10 +216,16 @@ class Enemy {
     this.gif = duck;
     this.scaleFactor = 1.0;
     this.isFlipped = false;
+    this.lastShotTime = 0;
   }
 
   update() {
     this.x -= this.speed;
+
+    if (millis() - this.lastShotTime > 3000) {
+      this.shoot();
+      this.lastShotTime = millis();
+    }
   }
 
   display() {
@@ -240,6 +258,30 @@ class Enemy {
       this.x += 5;
       this.isFlipped = true;
     }
+  }
+
+  shoot() {
+    if (this !== controlledEnemy) {
+        let bullet = new Bullet(this.x + 55, this.y + 80);
+        bullets.push(bullet);
+    }
+  }
+}
+
+class Bullet {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.speed = 5;
+  }
+
+  update() {
+    this.x -= this.speed;
+    this.y += random(-0.5, 0.5);
+  }
+
+  display() {
+    image(bulletSprite, this.x, this.y, 100, 100);
   }
 }
 
