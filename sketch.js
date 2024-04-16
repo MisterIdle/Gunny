@@ -23,12 +23,14 @@ let seconds = 0;
 let startTime;
 
 let duck;
+let duckShoot;
 let mindduck;
 let playerSprite;
 let bulletSprite;
 
 function preload() {
   duck = loadImage('artdev/duck.gif');
+  duckShoot = loadImage('artdev/duckshoot.gif');
   mindduck = loadImage('artdev/mindduck.gif');
   playerSprite = loadImage('artdev/gun.gif');
   bulletSprite = loadImage('artdev/bullet.png');
@@ -51,11 +53,7 @@ function draw() {
   }
 
   if (gameOver) {
-    if (controlledEnemy) {
-      enemies.splice(enemies.indexOf(controlledEnemy), 1);
-      controlledEnemy = null;
-    }
-
+    bullets = [];
     displayGameOver();
   }
 
@@ -113,23 +111,11 @@ function updateAndDisplayEnemies() {
     if (enemies[i].x < -50) {
       enemies.splice(i, 1);
     }
+ 
 
     if (controlledEnemy === enemies[i]) {
       enemies[i].handleControl();
       player.x = enemies[i].x;
-    }
-  }
-
-  checkEnemyCollisions();
-}
-
-function checkEnemyCollisions() {
-  if (controlledEnemy && !gameOver) {
-    for (let i = 0; i < enemies.length; i++) {
-      if (controlledEnemy !== enemies[i] && player.collidesWithEnemy(enemies[i])) {
-        gameOver = true;
-        return;
-      }
     }
   }
 }
@@ -140,6 +126,10 @@ function updateAndDisplayBullets() {
     bullets[i].display();
     if (bullets[i].x < 0) {
       bullets.splice(i, 1);
+    } else if (player.collidesWithBullet(bullets[i])) {
+      bullets.splice(i, 1);
+      enemies.splice(enemies.indexOf(controlledEnemy), 1);
+      gameOver = true;
     }
   }
 }
@@ -152,6 +142,7 @@ function restartGame() {
   lastSpawnTime = 0;
   gameStarted = false;
   gameOver = false;
+  nextEnemyId = 1;
 }
 
 class Player {
@@ -175,16 +166,32 @@ class Player {
   }
 
   handleInput() {
-    if (keyIsDown(32) && !this.isJumping && this.y >= height - 75 && !gameOver) {
+    if (gameOver) {
+      return;
+    }
+  
+    if (keyIsDown(32) && !gameOver) {
       this.isJumping = true;
-
+  
       if (!gameStarted) {
         startTime = millis();
       }
-
+  
       gameStarted = true;
     }
 
+    if (mouseIsPressed && mouseButton === LEFT && this.isControllingEnemy) {
+      this.controlledEnemy.speed = 0;
+      let bullet = new PlayerBullet(this.x, this.y);
+      bullets.push(bullet);
+      if(this.isFlipped) {
+        this.controlledEnemy.isFlipped = true;
+      }
+    } else if (this.isControllingEnemy) {
+      this.controlledEnemy.isFlipped = false;
+      this.controlledEnemy.speed = random(ENEMY_SPEED_MIN, ENEMY_SPEED_MAX);
+    }
+  
     if (mouseX < this.x && !this.haveJumped) {
       this.direction = -this.jumpLength;
       this.isFlipped = false;
@@ -192,17 +199,17 @@ class Player {
       this.direction = this.jumpLength;
       this.isFlipped = true;
     }
-
+  
     let distanceX = mouseX - this.x;
     this.jumpLength = map(abs(distanceX), 0, width, 0, 10);
-
+  
     if (this.isControllingEnemy && keyIsDown(32)) {
-      this.controlledEnemy = null; // Désactive le contrôle de l'ennemi contrôlé actuel
-      enemies.splice(enemies.indexOf(controlledEnemy), 1);
+      this.controlledEnemy = null;
+      enemies = enemies.filter(enemy => enemy.id !== controlledEnemy.id);
       this.isControllingEnemy = false;
     }
   }
-
+  
   update() {
     if (this.isJumping) {
       this.haveJumped = true;
@@ -252,10 +259,8 @@ class Player {
 
       if (!this.isControllingEnemy) {
         if (this.rotationAngle < 0) {
-          this.rotationAngle = 2;
           gameOver = true;
         } else if (this.rotationAngle > 0) {
-          this.rotationAngle = -2;
           gameOver = true;
         }
       }
@@ -286,12 +291,21 @@ class Player {
   }
 
   collidesWithEnemy(enemy) {
-    return this.x <= enemy.x + 100 && this.x + 20 >= enemy.x && this.y <= enemy.y + 100 && this.y + 20 >= enemy.y;
+    return this.x <= enemy.x + 100 && this.x + 20 >= enemy.x &&
+           this.y <= enemy.y + 100 && this.y + 20 >= enemy.y;
+  }
+
+  collidesWithBullet(bullet) {
+    return this.x <= bullet.x + 100 && this.x + 70 >= bullet.x &&
+           this.y <= bullet.y + 100 && this.y + 20 >= bullet.y;
   }
 }
 
+let nextEnemyId = 1;
+
 class Enemy {
   constructor() {
+    this.id = nextEnemyId++;
     this.x = ENEMY_START_X;
     this.y = ENEMY_START_Y;
     this.speed = random(ENEMY_SPEED_MIN, ENEMY_SPEED_MAX);
@@ -319,6 +333,15 @@ class Enemy {
     imageMode(CENTER);
     image(this.gif, 0, 0, 100, 100);
     pop();
+
+    this.displayID();
+  }
+
+  displayID() {
+    textSize(16);
+    textAlign(CENTER, BOTTOM);
+    fill(255, 0, 0);
+    text("ID: " + this.id, this.x + this.gif.width / 3, this.y);
   }
 
   changeSprite(sprite) {
@@ -332,14 +355,15 @@ class Enemy {
   }
 
   shoot() {
-    if (this !== controlledEnemy) {
-      if (controlledEnemy && abs(controlledEnemy.x - this.x) > 200) {
-        let bullet = new Bullet(this.x + 55, this.y + 50);
+    if (this !== controlledEnemy && !gameOver) {
+      if (controlledEnemy && abs(controlledEnemy.x - this.x) > 10) {
+        let bullet = new Bullet(this.x + 10, this.y + 50);
         bullets.push(bullet);
       }
     }
   }
 }
+
 
 class Bullet {
   constructor(x, y) {
@@ -350,7 +374,22 @@ class Bullet {
 
   update() {
     this.x -= this.speed;
-    this.y += random(-0.5, 0.5);
+  }
+
+  display() {
+    image(bulletSprite, this.x, this.y, 100, 100);
+  }
+}
+
+class PlayerBullet {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.speed = BULLET_SPEED;
+  }
+
+  update() {
+    this.x -= this.speed;
   }
 
   display() {
