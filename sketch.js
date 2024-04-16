@@ -10,7 +10,7 @@ const ENEMY_SPEED_MIN = 1;
 const ENEMY_SPEED_MAX = 3;
 const ENEMY_SHOOT_INTERVAL = 3000;
 const BULLET_SPEED = 5;
-const SPAWN_INTERVAL = 2000;
+const SPAWN_INTERVAL = 3000;
 
 let player;
 let enemies = [];
@@ -51,6 +51,11 @@ function draw() {
   }
 
   if (gameOver) {
+    if (controlledEnemy) {
+      enemies.splice(enemies.indexOf(controlledEnemy), 1);
+      controlledEnemy = null;
+    }
+
     displayGameOver();
   }
 
@@ -165,6 +170,8 @@ class Player {
     this.horizontalSpeed = -1;
     this.sprite = playerSprite;
     this.isFlipped = false;
+    this.controlledEnemyTime = 0;
+    this.controlledEnemy = null;
   }
 
   handleInput() {
@@ -190,8 +197,8 @@ class Player {
     this.jumpLength = map(abs(distanceX), 0, width, 0, 10);
 
     if (this.isControllingEnemy && keyIsDown(32)) {
+      this.controlledEnemy = null; // Désactive le contrôle de l'ennemi contrôlé actuel
       enemies.splice(enemies.indexOf(controlledEnemy), 1);
-      controlledEnemy = null;
       this.isControllingEnemy = false;
     }
   }
@@ -200,6 +207,9 @@ class Player {
     if (this.isJumping) {
       this.haveJumped = true;
       this.jump();
+      if (this.isControllingEnemy) {
+        this.controlledEnemyTime = millis();
+      }
 
       this.x += this.direction;
       this.x = constrain(this.x, 0, width);
@@ -218,8 +228,9 @@ class Player {
     }
 
     for (let i = enemies.length - 1; i >= 0; i--) {
-      if (this.x <= enemies[i].x + 100 && this.x + 20 >= enemies[i].x && this.y <= enemies[i].y + 100 && this.y + 20 >= enemies[i].y) {
-        if (this.isJumping) {
+      if (this.collidesWithEnemy(enemies[i])) {
+        if (this.isJumping && !this.isControllingEnemy && !this.controlledEnemy) {
+          this.controlledEnemy = enemies[i];
           controlledEnemy = enemies[i];
           this.isControllingEnemy = true;
 
@@ -231,7 +242,6 @@ class Player {
     }
   }
 
-
   jump() {
     this.y -= this.jumpForce;
     this.jumpForce -= this.gravity;
@@ -240,12 +250,14 @@ class Player {
       this.y = height - 75;
       this.jumpForce = JUMP_FORCE;
 
-      if (this.rotationAngle < 0 && !this.isControllingEnemy) {
-        this.rotationAngle = 2;
-        gameOver = true;
-      } else if (this.rotationAngle > 0 && !this.isControllingEnemy) {
-        this.rotationAngle = -2;
-        gameOver = true;
+      if (!this.isControllingEnemy) {
+        if (this.rotationAngle < 0) {
+          this.rotationAngle = 2;
+          gameOver = true;
+        } else if (this.rotationAngle > 0) {
+          this.rotationAngle = -2;
+          gameOver = true;
+        }
       }
 
       this.isJumping = false;
@@ -286,6 +298,7 @@ class Enemy {
     this.gif = duck;
     this.isFlipped = false;
     this.lastShotTime = 0;
+    this.isControlled = false;
   }
 
   update() {
@@ -315,17 +328,6 @@ class Enemy {
   handleControl() {
     if (!enemies.includes(this)) {
       return;
-    }
-
-    this.speed = 0;
-
-    if (keyIsDown(81)) { // Touche Q
-      this.x -= 5;
-      this.isFlipped = false;
-    }
-    if (keyIsDown(68)) { // Touche D
-      this.x += 5;
-      this.isFlipped = true;
     }
   }
 
