@@ -1,103 +1,135 @@
+const GAME_WIDTH = 1000;
+const GAME_HEIGHT = 700;
+const PLAYER_START_X = GAME_WIDTH / 2;
+const PLAYER_START_Y = GAME_HEIGHT - 75;
+const ENEMY_START_X = GAME_WIDTH - 20;
+const ENEMY_START_Y = GAME_HEIGHT - 130;
+const JUMP_FORCE = 15;
+const GRAVITY = 0.5;
+const ENEMY_SPEED_MIN = 1;
+const ENEMY_SPEED_MAX = 3;
+const ENEMY_SHOOT_INTERVAL = 3000;
+const BULLET_SPEED = 5;
+const SPAWN_INTERVAL = 2000;
+
 let player;
-let enemy = [];
+let enemies = [];
 let controlledEnemy = null;
 let lastSpawnTime = 0;
-const spawnInterval = 2000;
 let bullets = [];
-
 let gameStarted = false;
 let gameOver = false;
+let seconds = 0;
+let startTime;
 
 let duck;
 let mindduck;
 let playerSprite;
 let bulletSprite;
 
-let startTime;
-
 function preload() {
   duck = loadImage('artdev/duck.gif');
   mindduck = loadImage('artdev/mindduck.gif');
   playerSprite = loadImage('artdev/gun.gif');
-  bulletSprite = loadImage('artdev/bullet.png')
+  bulletSprite = loadImage('artdev/bullet.png');
 }
 
 function setup() {
-  createCanvas(1000, 700);
-  player = new Player(width / 2, height - 75);
+  createCanvas(GAME_WIDTH, GAME_HEIGHT);
+  player = new Player(PLAYER_START_X, PLAYER_START_Y);
 }
 
 function draw() {
   background(255);
 
   if (gameStarted && !gameOver) {
-    seconds = Math.floor((millis() - startTime) / 1000);
-    textSize(24);
-    textAlign(LEFT, TOP);
-    text("Time: " + seconds, 10, 10);
+    displayTimer();
   }
-  
+
   if (!gameStarted) {
-    textSize(24);
-    textAlign(CENTER, CENTER);
-    text("Press space to start", width / 2, height / 2);
+    displayStartMessage();
   }
 
   if (gameOver) {
-    textSize(24);
-    textAlign(CENTER, CENTER);
-    text("Game Over", width / 2, height / 2);
-    text("Press R to restart", width / 2, height / 2 + 50);
-    text("Time: " + seconds, width / 2, height / 2 + 100);
-
-    if (keyIsDown(82)) {
-      player = new Player(width / 2, height - 75);
-      enemy = [];
-      bullets = [];
-      controlledEnemy = null;
-      lastSpawnTime = 0;
-      gameStarted = false;
-      gameOver = false;
-    }
+    displayGameOver();
   }
 
-  fill(0);
-  rect(0, height - 50, height * 3, 2);
+  displayGround();
 
   player.handleInput();
   player.update();
   player.display();
 
-  if (millis() - lastSpawnTime > spawnInterval) {
-    enemy.push(new Enemy());
+  updateAndDisplayEnemies();
+
+  updateAndDisplayBullets();
+}
+
+function displayTimer() {
+  seconds = Math.floor((millis() - startTime) / 1000);
+  textSize(24);
+  textAlign(LEFT, TOP);
+  text("Time: " + seconds, 10, 10);
+}
+
+function displayStartMessage() {
+  textSize(24);
+  textAlign(CENTER, CENTER);
+  text("Press space to start", width / 2, height / 2);
+}
+
+function displayGameOver() {
+  textSize(24);
+  textAlign(CENTER, CENTER);
+  text("Game Over", width / 2, height / 2);
+  text("Press R to restart", width / 2, height / 2 + 50);
+  text("Time: " + seconds, width / 2, height / 2 + 100);
+
+  if (keyIsDown(82)) {
+    restartGame();
+  }
+}
+
+function displayGround() {
+  fill(0);
+  rect(0, height - 50, width, 2);
+}
+
+function updateAndDisplayEnemies() {
+  if (millis() - lastSpawnTime > SPAWN_INTERVAL) {
+    enemies.push(new Enemy());
     lastSpawnTime = millis();
   }
 
-  for (let i = enemy.length - 1; i >= 0; i--) {
-    enemy[i].update();
-    enemy[i].display();
-    if (enemy[i].x < -50) {
-      enemy.splice(i, 1);
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    enemies[i].update();
+    enemies[i].display();
+
+    if (enemies[i].x < -50) {
+      enemies.splice(i, 1);
     }
-    
-    if (controlledEnemy === enemy[i]) {
-      enemy[i].handleControl();
-      player.x = enemy[i].x;
-    }
-  }
-  
-  if (controlledEnemy && !gameOver) {
-    for (let i = bullets.length - 1; i >= 0; i--) {
-      let bullet = bullets[i];
-      if (bullet.x <= player.x + 50 && bullet.x + 50 >= player.x && bullet.y <= player.y + 50 && bullet.y + 50 >= player.y) {
-        gameOver = true;
-        enemy.splice(enemy.indexOf(controlledEnemy), 1);
-        controlledEnemy = null;
-        break;
-      }
+
+    if (controlledEnemy === enemies[i]) {
+      enemies[i].handleControl();
+      player.x = enemies[i].x;
     }
   }
 
+  checkEnemyCollisions();
+}
+
+function checkEnemyCollisions() {
+  if (controlledEnemy && !gameOver) {
+    for (let i = 0; i < enemies.length; i++) {
+      if (controlledEnemy !== enemies[i] && player.collidesWithEnemy(enemies[i])) {
+        gameOver = true;
+        return;
+      }
+    }
+  }
+}
+
+function updateAndDisplayBullets() {
   for (let i = bullets.length - 1; i >= 0; i--) {
     bullets[i].update();
     bullets[i].display();
@@ -107,13 +139,23 @@ function draw() {
   }
 }
 
+function restartGame() {
+  player = new Player(PLAYER_START_X, PLAYER_START_Y);
+  enemies = [];
+  bullets = [];
+  controlledEnemy = null;
+  lastSpawnTime = 0;
+  gameStarted = false;
+  gameOver = false;
+}
+
 class Player {
   constructor(x, y) {
     this.x = x;
     this.y = y;
     this.jumpHeight = 200;
-    this.jumpForce = 15; 
-    this.gravity = 0.5;
+    this.jumpForce = JUMP_FORCE;
+    this.gravity = GRAVITY;
     this.isJumping = false;
     this.haveJumped = false;
     this.jumpLength = 0;
@@ -128,11 +170,11 @@ class Player {
   handleInput() {
     if (keyIsDown(32) && !this.isJumping && this.y >= height - 75 && !gameOver) {
       this.isJumping = true;
-      
-      if(!gameStarted) {
+
+      if (!gameStarted) {
         startTime = millis();
       }
-      
+
       gameStarted = true;
     }
 
@@ -148,7 +190,7 @@ class Player {
     this.jumpLength = map(abs(distanceX), 0, width, 0, 10);
 
     if (this.isControllingEnemy && keyIsDown(32)) {
-      enemy.splice(enemy.indexOf(controlledEnemy), 1);
+      enemies.splice(enemies.indexOf(controlledEnemy), 1);
       controlledEnemy = null;
       this.isControllingEnemy = false;
     }
@@ -158,38 +200,37 @@ class Player {
     if (this.isJumping) {
       this.haveJumped = true;
       this.jump();
-  
+
       this.x += this.direction;
       this.x = constrain(this.x, 0, width);
-  
+
       if (this.y < height - 75) {
         this.rotationAngle += 12;
       }
     }
-  
+
     if (this.y < height - 75) {
       this.y += this.gravity;
     }
-  
-    if (this.x <= 0 || this.x >= width) {
+
+    if (this.x <= -50 || this.x >= width) {
       gameOver = true;
     }
-  
-    for (let i = enemy.length - 1; i >= 0; i--) {
 
-      if (this.y <= enemy[i].y + 50 && this.y + 50 >= enemy[i].y && this.x <= enemy[i].x + 50 && this.x + 50 >= enemy[i].x) {
+    for (let i = enemies.length - 1; i >= 0; i--) {
+      if (this.x <= enemies[i].x + 100 && this.x + 20 >= enemies[i].x && this.y <= enemies[i].y + 100 && this.y + 20 >= enemies[i].y) {
         if (this.isJumping) {
-          controlledEnemy = enemy[i];
+          controlledEnemy = enemies[i];
           this.isControllingEnemy = true;
-  
-          if(this.isControllingEnemy) {
-            enemy[i].changeSprite(mindduck);
+
+          if (this.isControllingEnemy) {
+            enemies[i].changeSprite(mindduck);
           }
         }
       }
     }
   }
-  
+
 
   jump() {
     this.y -= this.jumpForce;
@@ -197,7 +238,7 @@ class Player {
 
     if (this.y >= height - 75) {
       this.y = height - 75;
-      this.jumpForce = 15;
+      this.jumpForce = JUMP_FORCE;
 
       if (this.rotationAngle < 0 && !this.isControllingEnemy) {
         this.rotationAngle = 2;
@@ -231,16 +272,18 @@ class Player {
       }
     }
   }
-}
 
+  collidesWithEnemy(enemy) {
+    return this.x <= enemy.x + 100 && this.x + 20 >= enemy.x && this.y <= enemy.y + 100 && this.y + 20 >= enemy.y;
+  }
+}
 
 class Enemy {
   constructor() {
-    this.x = width;
-    this.y = height - 160;
-    this.speed = random(1, 3);
+    this.x = ENEMY_START_X;
+    this.y = ENEMY_START_Y;
+    this.speed = random(ENEMY_SPEED_MIN, ENEMY_SPEED_MAX);
     this.gif = duck;
-    this.scaleFactor = 1.0;
     this.isFlipped = false;
     this.lastShotTime = 0;
   }
@@ -248,7 +291,7 @@ class Enemy {
   update() {
     this.x -= this.speed;
 
-    if (millis() - this.lastShotTime > 3000) {
+    if (millis() - this.lastShotTime > ENEMY_SHOOT_INTERVAL) {
       this.shoot();
       this.lastShotTime = millis();
     }
@@ -256,7 +299,7 @@ class Enemy {
 
   display() {
     push();
-    translate(this.x + this.gif.width / 2, this.y + this.gif.height / 2);
+    translate(this.x + this.gif.width / 3, this.y + this.gif.height / 3);
     if (this.isFlipped) {
       scale(-1, 1);
     }
@@ -270,7 +313,7 @@ class Enemy {
   }
 
   handleControl() {
-    if (!enemy.includes(this)) {
+    if (!enemies.includes(this)) {
       return;
     }
 
@@ -289,7 +332,7 @@ class Enemy {
   shoot() {
     if (this !== controlledEnemy) {
       if (controlledEnemy && abs(controlledEnemy.x - this.x) > 200) {
-        let bullet = new Bullet(this.x + 55, this.y + 80);
+        let bullet = new Bullet(this.x + 55, this.y + 50);
         bullets.push(bullet);
       }
     }
@@ -300,7 +343,7 @@ class Bullet {
   constructor(x, y) {
     this.x = x;
     this.y = y;
-    this.speed = 5;
+    this.speed = BULLET_SPEED;
   }
 
   update() {
@@ -312,4 +355,3 @@ class Bullet {
     image(bulletSprite, this.x, this.y, 100, 100);
   }
 }
-
