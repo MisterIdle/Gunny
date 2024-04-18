@@ -23,7 +23,6 @@ let gameStarted = false;
 let gameOver = false;
 let seconds = 0;
 let startTime;
-let nextEnemyId = 1;
 
 let duck;
 let duckShoot;
@@ -54,7 +53,7 @@ function setup() {
 }
 
 function showSettingsSlider() {
-  let slider = createSlider(0, 100, 50); 
+  let slider = createSlider(0, 100, 50);
   slider.position(10, 100);
 }
 
@@ -85,7 +84,6 @@ function draw() {
   updateAndDisplayBullets();
 }
 
-
 function displayTimer() {
   seconds = Math.floor((millis() - startTime) / 1000);
   textSize(24);
@@ -100,13 +98,12 @@ function displayStartMessage() {
   settingsButton.position(100, 10);
 }
 
-
 function displayGameOver() {
   textSize(24);
   textAlign(CENTER, CENTER);
   text("Game Over", width / 2, height / 2 - 100);
-  text("Press R to restart", width / 2, height / 2 - 20);
-  text("Time: " + seconds, width / 2, height / 2 - 60);
+  text("Press R to restart", width / 2, height / 2 - 10);
+  text("Time: " + seconds, width / 2, height / 2 - 50);
 
   if (keyIsDown(82)) {
     restartGame();
@@ -136,13 +133,13 @@ function updateAndDisplayEnemies() {
 
     if (enemies[i].x < -50) {
       enemies.splice(i, 1);
-    } else if (controlledEnemy && controlledEnemy.x < -50) {
-      enemies.splice(enemies.indexOf(controlledEnemy), 1);
+    } else if (controlledEnemy && controlledEnemy === enemies[i] && controlledEnemy.x < -50) {
+      enemies.splice(i, 1);
       controlledEnemy = null;
       player.isControllingEnemy = false;
       gameOver = true;
     }
- 
+
     if (controlledEnemy === enemies[i]) {
       player.x = enemies[i].x;
     }
@@ -151,7 +148,6 @@ function updateAndDisplayEnemies() {
 
 function updateAndDisplayBullets() {
   for (let i = bullets.length - 1; i >= 0; i--) {
-
     bullets[i].update();
     bullets[i].display();
 
@@ -173,7 +169,6 @@ function restartGame() {
   lastSpawnTime = 0;
   gameStarted = false;
   gameOver = false;
-  nextEnemyId = 1;
 }
 
 class Player {
@@ -200,21 +195,21 @@ class Player {
     if (gameOver) {
       return;
     }
-  
+
     if (keyIsDown(32) && !gameOver) {
       this.isJumping = true;
-  
+
       if (!gameStarted) {
         startTime = millis();
       }
-  
+
       gameStarted = true;
     }
 
     if (keyIsDown(69) && this.controlledEnemy) {
       this.controlledEnemy.isFlipped = !this.controlledEnemy.isFlipped;
     }
-  
+
     if (mouseX < this.x && !this.haveJumped) {
       this.direction = -this.jumpLength;
       this.isFlipped = false;
@@ -222,23 +217,22 @@ class Player {
       this.direction = this.jumpLength;
       this.isFlipped = true;
     }
-  
+
     let distanceX = mouseX - this.x;
     this.jumpLength = map(abs(distanceX), 0, width, 0, 10);
-  
+
     if (this.isControllingEnemy && keyIsDown(32)) {
       this.controlledEnemy = null;
-      enemies = enemies.filter(enemy => enemy.id !== controlledEnemy.id);
+      enemies = enemies.filter(enemy => enemy !== controlledEnemy);
       this.isControllingEnemy = false;
     }
   }
 
-  
   update() {
     if (this.isJumping) {
       this.haveJumped = true;
       this.jump();
-      
+
       if (this.isControllingEnemy) {
         this.controlledEnemyTime = millis();
       }
@@ -328,20 +322,20 @@ class Player {
 
 class Enemy {
   constructor() {
-    this.id = nextEnemyId++;
     this.x = ENEMY_START_X;
     this.y = ENEMY_START_Y;
     this.speed = random(ENEMY_SPEED_MIN, ENEMY_SPEED_MAX);
     this.gif = duck;
     this.isFlipped = false;
     this.lastShotTime = 0;
-    this.isControlled = false;
+    this.initialShotDelay = random(700, 1500);
+    this.timeSinceSpawn = millis();
   }
 
   update() {
     this.x -= this.speed;
 
-    if (millis() - this.lastShotTime > ENEMY_SHOOT_INTERVAL) {
+    if (millis() - this.timeSinceSpawn > this.initialShotDelay && millis() - this.lastShotTime > ENEMY_SHOOT_INTERVAL) {
       this.shoot();
       this.lastShotTime = millis();
     }
@@ -371,7 +365,6 @@ class Enemy {
     }
   }
 }
-
 
 class Bullet {
   constructor(x, y) {
