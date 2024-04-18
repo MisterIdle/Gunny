@@ -10,6 +10,7 @@ const ENEMY_SPEED_MIN = 1;
 const ENEMY_SPEED_MAX = 3;
 const ENEMY_SHOOT_INTERVAL = 3000;
 const BULLET_SPEED = 5;
+const BULLET_PLAYER_SPEED = 7;
 const SPAWN_INTERVAL = 3000;
 
 let player;
@@ -17,16 +18,22 @@ let enemies = [];
 let controlledEnemy = null;
 let lastSpawnTime = 0;
 let bullets = [];
+let playerBullets = [];
 let gameStarted = false;
 let gameOver = false;
 let seconds = 0;
 let startTime;
+let nextEnemyId = 1;
 
 let duck;
 let duckShoot;
 let mindduck;
 let playerSprite;
 let bulletSprite;
+
+let settingsButton;
+let musicSettings;
+let sfxSettings;
 
 function preload() {
   duck = loadImage('artdev/duck.gif');
@@ -39,6 +46,22 @@ function preload() {
 function setup() {
   createCanvas(GAME_WIDTH, GAME_HEIGHT);
   player = new Player(PLAYER_START_X, PLAYER_START_Y);
+
+  settingsButton = createButton('SETTINGS');
+  settingsButton.id('settingsButton');
+  settingsButton.position(470, 110);
+
+  settingsButton.mouseClicked(showSettingsSlider);
+
+  textSize(24);
+  textAlign(CENTER, CENTER);
+  text("Gunny", width / 2, 10);
+}
+
+
+function showSettingsSlider() {
+  let slider = createSlider(0, 100, 50); 
+  slider.position(10, 100);
 }
 
 function draw() {
@@ -46,10 +69,12 @@ function draw() {
 
   if (gameStarted && !gameOver) {
     displayTimer();
+    settingsButton.hide();
   }
 
   if (!gameStarted) {
     displayStartMessage();
+    settingsButton.show();
   }
 
   if (gameOver) {
@@ -57,14 +82,12 @@ function draw() {
     displayGameOver();
   }
 
-  displayGround();
-
   player.handleInput();
   player.update();
   player.display();
 
+  displayGround();
   updateAndDisplayEnemies();
-
   updateAndDisplayBullets();
 }
 
@@ -93,6 +116,12 @@ function displayGameOver() {
   }
 }
 
+function displayCredits() {
+  textSize(16);
+  textAlign(LEFT, BOTTOM);
+  text("Game by: Alexy HOUBLOUP, Rémi PORTIER, Aurélie, Kerwyne", 10, height - 10);
+}
+
 function displayGround() {
   fill(0);
   rect(0, height - 50, width, 2);
@@ -110,11 +139,14 @@ function updateAndDisplayEnemies() {
 
     if (enemies[i].x < -50) {
       enemies.splice(i, 1);
+    } else if (controlledEnemy && controlledEnemy.x < -50) {
+      enemies.splice(enemies.indexOf(controlledEnemy), 1);
+      controlledEnemy = null;
+      player.isControllingEnemy = false;
+      gameOver = true;
     }
  
-
     if (controlledEnemy === enemies[i]) {
-      enemies[i].handleControl();
       player.x = enemies[i].x;
     }
   }
@@ -122,8 +154,11 @@ function updateAndDisplayEnemies() {
 
 function updateAndDisplayBullets() {
   for (let i = bullets.length - 1; i >= 0; i--) {
+
     bullets[i].update();
     bullets[i].display();
+
+    // Hit by bullet
     if (bullets[i].x < 0) {
       bullets.splice(i, 1);
     } else if (player.collidesWithBullet(bullets[i])) {
@@ -180,10 +215,13 @@ class Player {
       gameStarted = true;
     }
 
-    if (mouseIsPressed && mouseButton === LEFT && this.isControllingEnemy) {
+    if (keyIsDown(69) && this.controlledEnemy) {
       this.controlledEnemy.speed = 0;
-      let bullet = new PlayerBullet(this.x, this.y);
-      bullets.push(bullet);
+
+      // Create a bullet when the player presses E
+      let bullet = new PlayerBullet(this.controlledEnemy.x, this.controlledEnemy.y);
+      playerBullets.push(bullet);
+
       if(this.isFlipped) {
         this.controlledEnemy.isFlipped = true;
       }
@@ -209,11 +247,13 @@ class Player {
       this.isControllingEnemy = false;
     }
   }
+
   
   update() {
     if (this.isJumping) {
       this.haveJumped = true;
       this.jump();
+      
       if (this.isControllingEnemy) {
         this.controlledEnemyTime = millis();
       }
@@ -301,8 +341,6 @@ class Player {
   }
 }
 
-let nextEnemyId = 1;
-
 class Enemy {
   constructor() {
     this.id = nextEnemyId++;
@@ -333,25 +371,10 @@ class Enemy {
     imageMode(CENTER);
     image(this.gif, 0, 0, 100, 100);
     pop();
-
-    this.displayID();
-  }
-
-  displayID() {
-    textSize(16);
-    textAlign(CENTER, BOTTOM);
-    fill(255, 0, 0);
-    text("ID: " + this.id, this.x + this.gif.width / 3, this.y);
   }
 
   changeSprite(sprite) {
     this.gif = sprite;
-  }
-
-  handleControl() {
-    if (!enemies.includes(this)) {
-      return;
-    }
   }
 
   shoot() {
@@ -385,11 +408,11 @@ class PlayerBullet {
   constructor(x, y) {
     this.x = x;
     this.y = y;
-    this.speed = BULLET_SPEED;
+    this.speed = BULLET_PLAYER_SPEED;
   }
 
   update() {
-    this.x -= this.speed;
+    this.x += this.speed;
   }
 
   display() {
