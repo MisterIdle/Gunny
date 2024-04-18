@@ -1,6 +1,6 @@
 const GAME_WIDTH = 1000;
-const GAME_HEIGHT = 700;
-const PLAYER_START_X = GAME_WIDTH / 2;
+const GAME_HEIGHT = 400;
+const PLAYER_START_X = GAME_WIDTH / 4;
 const PLAYER_START_Y = GAME_HEIGHT - 75;
 const ENEMY_START_X = GAME_WIDTH - 20;
 const ENEMY_START_Y = GAME_HEIGHT - 130;
@@ -9,7 +9,7 @@ const GRAVITY = 0.5;
 const ENEMY_SPEED_MIN = 1;
 const ENEMY_SPEED_MAX = 3;
 const ENEMY_SHOOT_INTERVAL = 3000;
-const BULLET_SPEED = 5;
+const BULLET_SPEED = 7;
 const BULLET_PLAYER_SPEED = 7;
 const SPAWN_INTERVAL = 3000;
 
@@ -49,15 +49,9 @@ function setup() {
 
   settingsButton = createButton('SETTINGS');
   settingsButton.id('settingsButton');
-  settingsButton.position(470, 110);
 
   settingsButton.mouseClicked(showSettingsSlider);
-
-  textSize(24);
-  textAlign(CENTER, CENTER);
-  text("Gunny", width / 2, 10);
 }
-
 
 function showSettingsSlider() {
   let slider = createSlider(0, 100, 50); 
@@ -91,6 +85,7 @@ function draw() {
   updateAndDisplayBullets();
 }
 
+
 function displayTimer() {
   seconds = Math.floor((millis() - startTime) / 1000);
   textSize(24);
@@ -102,14 +97,16 @@ function displayStartMessage() {
   textSize(24);
   textAlign(CENTER, CENTER);
   text("Press space to start", width / 2, height / 2);
+  settingsButton.position(100, 10);
 }
+
 
 function displayGameOver() {
   textSize(24);
   textAlign(CENTER, CENTER);
-  text("Game Over", width / 2, height / 2);
-  text("Press R to restart", width / 2, height / 2 + 50);
-  text("Time: " + seconds, width / 2, height / 2 + 100);
+  text("Game Over", width / 2, height / 2 - 100);
+  text("Press R to restart", width / 2, height / 2 - 20);
+  text("Time: " + seconds, width / 2, height / 2 - 60);
 
   if (keyIsDown(82)) {
     restartGame();
@@ -128,7 +125,7 @@ function displayGround() {
 }
 
 function updateAndDisplayEnemies() {
-  if (millis() - lastSpawnTime > SPAWN_INTERVAL) {
+  if (millis() - lastSpawnTime > random(SPAWN_INTERVAL, SPAWN_INTERVAL + 7000)) {
     enemies.push(new Enemy());
     lastSpawnTime = millis();
   }
@@ -158,7 +155,6 @@ function updateAndDisplayBullets() {
     bullets[i].update();
     bullets[i].display();
 
-    // Hit by bullet
     if (bullets[i].x < 0) {
       bullets.splice(i, 1);
     } else if (player.collidesWithBullet(bullets[i])) {
@@ -216,18 +212,7 @@ class Player {
     }
 
     if (keyIsDown(69) && this.controlledEnemy) {
-      this.controlledEnemy.speed = 0;
-
-      // Create a bullet when the player presses E
-      let bullet = new PlayerBullet(this.controlledEnemy.x, this.controlledEnemy.y);
-      playerBullets.push(bullet);
-
-      if(this.isFlipped) {
-        this.controlledEnemy.isFlipped = true;
-      }
-    } else if (this.isControllingEnemy) {
-      this.controlledEnemy.isFlipped = false;
-      this.controlledEnemy.speed = random(ENEMY_SPEED_MIN, ENEMY_SPEED_MAX);
+      this.controlledEnemy.isFlipped = !this.controlledEnemy.isFlipped;
     }
   
     if (mouseX < this.x && !this.haveJumped) {

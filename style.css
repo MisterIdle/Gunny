@@ -4,11 +4,13 @@ html, body {
   background-color: #ecffec;
 }
 
+
 canvas {
   display: flex;
   margin: 100px auto;
   border: 1px solid black;
   border-radius: 5px;
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
 }
 
 #credits {
@@ -24,8 +26,6 @@ canvas {
 
 #settingsButton {
   position: fixed;
-  top: 1%;
-  left: 1%;
   color: rgb(0, 0, 0);
   background-color: rgb(255, 255, 255);
   padding: 20px;

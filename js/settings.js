@@ -1,4 +1,3 @@
-const settingsButton = document.getElementById("settingsButton");
 const musicSettings = document.getElementById("musicSettings");
 const sfxSettings = document.getElementById("sfxSettings");
 const musicVolumeInput = document.getElementById("musicVolume");
