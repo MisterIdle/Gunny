@@ -10,7 +10,7 @@ const ENEMY_SPEED_MIN = 1;
 const ENEMY_SPEED_MAX = 3;
 const ENEMY_SHOOT_INTERVAL = 3000;
 const BULLET_SPEED = 7;
-const BULLET_PLAYER_SPEED = 7;
+const BULLET_PLAYER_SPEED = 10;
 const SPAWN_INTERVAL = 3000;
 
 let player;
@@ -29,9 +29,6 @@ let bulletSprite;
 let akaquak;
 let mindduck;
 let croco_nard;
-
-let musicSettings;
-let sfxSettings;
 
 function preload() {
   akaquak = loadImage('artdev/akaquak.gif');
@@ -52,7 +49,7 @@ function showSettingsSlider() {
 }
 
 function draw() {
-  background(255);
+  background(250);
 
   if (gameStarted && !gameOver) {
     displayTimer();
@@ -113,7 +110,7 @@ function displayGround() {
 }
 
 function updateAndDisplayEnemies() {
-  if (millis() - lastSpawnTime > random(SPAWN_INTERVAL, SPAWN_INTERVAL + 7000)) {
+  if (millis() - lastSpawnTime > random(SPAWN_INTERVAL, SPAWN_INTERVAL + 4000)) {
     enemies.push(new Enemy());
     lastSpawnTime = millis();
   }
@@ -141,13 +138,24 @@ function updateAndDisplayBullets() {
   for (let i = bullets.length - 1; i >= 0; i--) {
     bullets[i].update();
     bullets[i].display();
-
-    if (bullets[i].x < 0) {
-      bullets.splice(i, 1);
-    } else if (player.collidesWithBullet(bullets[i])) {
+    
+    if (player.collidesWithBullet(bullets[i])) {
       bullets.splice(i, 1);
       enemies.splice(enemies.indexOf(controlledEnemy), 1);
       gameOver = true;
+    }
+  }
+
+  for (let i = playerBullets.length - 1; i >= 0; i--) {
+    playerBullets[i].update();
+    playerBullets[i].display();
+
+    for (let j = enemies.length - 1; j >= 0; j--) {
+      if (enemies[j].collidesWithBullet(playerBullets[i])) {
+        enemies.splice(j, 1);
+        playerBullets.splice(i, 1);
+        bullets = [];
+      }
     }
   }
 }
@@ -156,6 +164,7 @@ function restartGame() {
   player = new Player(PLAYER_START_X, PLAYER_START_Y);
   enemies = [];
   bullets = [];
+  playerBullets = [];
   controlledEnemy = null;
   lastSpawnTime = 0;
   gameStarted = false;
@@ -180,6 +189,9 @@ class Player {
     this.isFlipped = false;
     this.controlledEnemyTime = 0;
     this.controlledEnemy = null;
+    this.lastShootTime = 0;
+    this.shootDelay = 2000;
+    this.isShooting = false;
   }
 
   handleInput() {
@@ -197,8 +209,11 @@ class Player {
       gameStarted = true;
     }
 
-    if (keyIsDown(69) && this.controlledEnemy) {
-      this.controlledEnemy.isFlipped = !this.controlledEnemy.isFlipped;
+    if (keyIsDown(69) && !this.isShooting && millis() - this.lastShootTime > this.shootDelay && this.isControllingEnemy) {
+      this.shoot();
+      this.isShooting = true;
+      this.lastShootTime = millis();
+      setTimeout(() => { this.isShooting = false; }, 2000);
     }
 
     if (mouseX < this.x && !this.haveJumped) {
@@ -309,7 +324,21 @@ class Player {
     return this.x <= bullet.x + 100 && this.x + 70 >= bullet.x &&
            this.y <= bullet.y + 100 && this.y + 20 >= bullet.y;
   }
+
+  shoot() {
+    this.controlledEnemy.speed = 0;
+    this.controlledEnemy.isFlipped = true;
+
+    let bullet = new PlayerBullet(this.x + 100, this.y);
+    playerBullets.push(bullet);
+
+    setTimeout(() => {
+      this.controlledEnemy.isFlipped = false;
+      this.controlledEnemy.speed = random(ENEMY_SPEED_MIN, ENEMY_SPEED_MAX);
+    }, 500);
+  }
 }
+
 
 class Enemy {
   constructor() {
@@ -334,19 +363,29 @@ class Enemy {
   }
 
   display() {
-    push();
-    translate(this.x + this.gif.width / 3, this.y + this.gif.height / 3);
-    if (this.isFlipped) {
-      scale(-1, 1);
+    if (this.gif) {
+      push();
+      translate(this.x + this.gif.width / 3, this.y + this.gif.height / 3);
+      if (this.isFlipped) {
+        scale(-1, 1);
+      }
+      imageMode(CENTER);
+      image(this.gif, 0, 0, 100, 100);
+      pop();
     }
-    imageMode(CENTER);
-    image(this.gif, 0, 0, 100, 100);
-    pop();
   }
 
   changeSprite(sprite) {
     this.gif = sprite;
     this.isCrocoNard = true;
+  }
+
+  collidesWithBullet(playerBullet) {
+    if (this && playerBullet) {
+      return this.x <= playerBullet.x + 20 && this.x + 0 >= playerBullet.x &&
+             this.y <= playerBullet.y + 100 && this.y + 100 >= playerBullet.y;
+    }
+    return false;
   }
 
   shoot() {
