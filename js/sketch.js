@@ -24,20 +24,19 @@ let gameOver = false;
 let seconds = 0;
 let startTime;
 
-let duck;
-let duckShoot;
-let mindduck;
 let playerSprite;
 let bulletSprite;
+let akaquak;
+let mindduck;
+let croco_nard;
 
-let settingsButton;
 let musicSettings;
 let sfxSettings;
 
 function preload() {
-  duck = loadImage('artdev/duck.gif');
-  duckShoot = loadImage('artdev/duckshoot.gif');
+  akaquak = loadImage('artdev/akaquak.gif');
   mindduck = loadImage('artdev/mindduck.gif');
+  croco_nard = loadImage('artdev/croco_nard.gif');
   playerSprite = loadImage('artdev/gun.gif');
   bulletSprite = loadImage('artdev/bullet.png');
 }
@@ -45,11 +44,6 @@ function preload() {
 function setup() {
   createCanvas(GAME_WIDTH, GAME_HEIGHT);
   player = new Player(PLAYER_START_X, PLAYER_START_Y);
-
-  settingsButton = createButton('SETTINGS');
-  settingsButton.id('settingsButton');
-
-  settingsButton.mouseClicked(showSettingsSlider);
 }
 
 function showSettingsSlider() {
@@ -62,12 +56,10 @@ function draw() {
 
   if (gameStarted && !gameOver) {
     displayTimer();
-    settingsButton.hide();
   }
 
   if (!gameStarted) {
     displayStartMessage();
-    settingsButton.show();
   }
 
   if (gameOver) {
@@ -95,7 +87,6 @@ function displayStartMessage() {
   textSize(24);
   textAlign(CENTER, CENTER);
   text("Press space to start", width / 2, height / 2);
-  settingsButton.position(100, 10);
 }
 
 function displayGameOver() {
@@ -255,7 +246,7 @@ class Player {
 
     for (let i = enemies.length - 1; i >= 0; i--) {
       if (this.collidesWithEnemy(enemies[i])) {
-        if (this.isJumping && !this.isControllingEnemy && !this.controlledEnemy) {
+        if (this.isJumping && !this.isControllingEnemy && !this.controlledEnemy && !enemies[i].isCrocoNard) {
           this.controlledEnemy = enemies[i];
           controlledEnemy = enemies[i];
           this.isControllingEnemy = true;
@@ -325,7 +316,8 @@ class Enemy {
     this.x = ENEMY_START_X;
     this.y = ENEMY_START_Y;
     this.speed = random(ENEMY_SPEED_MIN, ENEMY_SPEED_MAX);
-    this.gif = duck;
+    this.isCrocoNard = random() > 0.9;
+    this.gif = this.isCrocoNard ? croco_nard : akaquak;
     this.isFlipped = false;
     this.lastShotTime = 0;
     this.initialShotDelay = random(700, 1500);
@@ -354,6 +346,7 @@ class Enemy {
 
   changeSprite(sprite) {
     this.gif = sprite;
+    this.isCrocoNard = true;
   }
 
   shoot() {
@@ -365,6 +358,7 @@ class Enemy {
     }
   }
 }
+
 
 class Bullet {
   constructor(x, y) {
