@@ -255,7 +255,7 @@ class Player {
       this.y += this.gravity;
     }
 
-    if (this.x <= -50 || this.x >= width) {
+    if (controlledEnemy && controlledEnemy === this.controlledEnemy && (this.x <= -40 || this.x >= width)) {
       gameOver = true;
     }
 
@@ -273,6 +273,7 @@ class Player {
       }
     }
   }
+
 
   jump() {
     this.y -= this.jumpForce;
