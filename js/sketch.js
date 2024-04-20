@@ -41,6 +41,7 @@ function preload() {
 function setup() {
   createCanvas(GAME_WIDTH, GAME_HEIGHT);
   player = new Player(PLAYER_START_X, PLAYER_START_Y);
+  creditName();
 }
 
 function showSettingsSlider() {
