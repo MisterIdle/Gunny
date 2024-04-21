@@ -1,5 +1,3 @@
-
-  
 const ENEMY_START_X = GAME_WIDTH - 20;
 const ENEMY_START_Y = GAME_HEIGHT - 130;
 const ENEMY_SPEED_MIN = 1;
@@ -57,6 +55,9 @@ class Enemy {
         if(this.isJumping) {
           rotate(radians(30));
         }
+
+        stroke(255);
+        strokeWeight(2);
   
         imageMode(CENTER);
         image(this.gif, 0, 0, 100, 100);

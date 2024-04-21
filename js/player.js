@@ -1,5 +1,5 @@
 const PLAYER_START_X = GAME_WIDTH / 4;
-const PLAYER_START_Y = GAME_HEIGHT - 75;
+const PLAYER_START_Y = GAME_HEIGHT - 60;
 
 let player;
 
@@ -56,16 +56,14 @@ class Player {
       }
   
       let distanceX = mouseX - this.x;
-      this.jumpLength = map(abs(distanceX), 0, width, 0, 10);
+      this.jumpLength = map(abs(distanceX), 0, width, 0, 12);
   
       if (keyIsDown(32) && this.isControllingEnemy) {
         this.isControllingEnemy = false;
         this.controlledEnemy.isJumping = true;
         this.controlledEnemy = null;
   
-        setTimeout(() => {
-          enemies = enemies.filter(enemy => enemy !== controlledEnemy);
-        }, 800);
+        setTimeout(() => {enemies = enemies.filter(enemy => enemy !== controlledEnemy); }, 800);
       }
     }
   
@@ -86,7 +84,7 @@ class Player {
         this.y += this.gravity;
       }
   
-      if (this.x < -30 || this.x > width) {
+      if (this.x < -40 || this.x > width) {
         gameState = GameState.OVER;
       }
   

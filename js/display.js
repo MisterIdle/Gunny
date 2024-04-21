@@ -3,16 +3,21 @@ let bulletSprite;
 let akaquak;
 let mindduck;
 let croco_nard;
+let pixelArtFont;
+let backgroundImg;
 
 function preload() {
-  akaquak = loadImage('artdev/akaquak.gif');
-  mindduck = loadImage('artdev/mindduck.gif');
-  croco_nard = loadImage('artdev/croco_nard.gif');
-  playerSprite = loadImage('artdev/gun.gif');
-  bulletSprite = loadImage('artdev/bullet.png');
+  akaquak = loadImage('img/akaquak.gif');
+  mindduck = loadImage('img/mindduck.gif');
+  croco_nard = loadImage('img/croco_nard.gif');
+  playerSprite = loadImage('img/gun.gif');
+  bulletSprite = loadImage('img/bullet.png');
+  pixelArtFont = loadFont('font/Daydream.ttf');
+  backgroundImg = loadImage('img/background.png');
 }
 
 function displayTimer() {
+  fill(255);
   seconds = Math.floor((millis() - startTime) / 1000);
   textSize(24);
   textAlign(LEFT, TOP);
@@ -20,22 +25,38 @@ function displayTimer() {
 }
 
 function displayStartMessage() {
+  fill(0, 0, 0, 200);
+  textFont(pixelArtFont);
   textSize(24);
   textAlign(CENTER, CENTER);
   text("Press space to start", width / 2, height / 2);
 }
 
 function displayGameOver() {
-  textSize(24);
+  fill(255, 0, 0, 200);
+  textSize(30);
   textAlign(CENTER, CENTER);
-  text("Game Over", width / 2, height / 2 - 100);
-  text("Press R to restart", width / 2, height / 2 - 10);
-  text("Time: " + seconds, width / 2, height / 2 - 50);
+  text("G a m e   O v e r", width / 2, height / 2 - 100);
+
+  text("Living Time: " + seconds, width / 2, height / 2 - 25);
+
+  textSize(20);
+  text("Press R to restart", width / 2, height / 2 + 50 );
 }
 
 function displayGround() {
-  fill(0);
-  rect(0, height - 50, width, 2);
+  fill(238,194,160);
+  beginShape();
+  stroke(238,194,160);
+  vertex(0, height);
+  vertex(0, height - 50);
+  for (let i = 0; i < width; i += 50) {
+    vertex(i, height - 50 + random(-2, 5));
+  }
+  endShape(CLOSE);
+  
+
+  rect(0, height - 50, width, 50);
 }
 
 function updateAndDisplayEnemies() {
