@@ -4,7 +4,9 @@ let akaquak;
 let mindduck;
 let croco_nard;
 let pixelArtFont;
-let backgroundImg;
+
+let backgroundImgDesert;
+let backgroundImgSummer;
 
 function preload() {
   akaquak = loadImage('img/akaquak.gif');
@@ -13,7 +15,8 @@ function preload() {
   playerSprite = loadImage('img/gun.gif');
   bulletSprite = loadImage('img/bullet.png');
   pixelArtFont = loadFont('font/Daydream.ttf');
-  backgroundImg = loadImage('img/background.png');
+  backgroundImgDesert = loadImage('img/backgrounddesert.png');
+  backgroundImgSummer = loadImage('img/backgroundsummer.png');
 }
 
 function displayTimer() {
@@ -45,18 +48,32 @@ function displayGameOver() {
 }
 
 function displayGround() {
-  fill(238,194,160);
-  beginShape();
-  stroke(238,194,160);
-  vertex(0, height);
-  vertex(0, height - 50);
-  for (let i = 0; i < width; i += 50) {
-    vertex(i, height - 50 + random(-2, 5));
+  switch (selectedTheme) {
+    case SelectedTheme.DESERT:
+      fill(238,194,160);
+      beginShape();
+      stroke(238,194,160);
+      vertex(0, height);
+      vertex(0, height - 50);
+      for (let i = 0; i < width; i += 50) {
+        vertex(i, height - 50 + random(-2, 5));
+      }
+      endShape(CLOSE);
+    
+      rect(0, height - 50, width, 50);
+    case SelectedTheme.SUMMER:
+      fill(107,160,20);
+      beginShape();
+      stroke(107,160,20);
+      vertex(0, height);
+      vertex(0, height - 50);
+      for (let i = 0; i < width; i += 50) {
+        vertex(i, height - 50 + random(-2, 5));
+      }
+      endShape(CLOSE);
+    
+      rect(0, height - 50, width, 50);
   }
-  endShape(CLOSE);
-  
-
-  rect(0, height - 50, width, 50);
 }
 
 function updateAndDisplayEnemies() {
@@ -69,9 +86,9 @@ function updateAndDisplayEnemies() {
     enemies[i].update();
     enemies[i].display();
 
-    if (enemies[i].x < -50) {
+    if (enemies[i].x < -100) {
       enemies.splice(i, 1);
-    } else if (controlledEnemy && controlledEnemy === enemies[i] && controlledEnemy.x < -50) {
+    } else if (controlledEnemy && controlledEnemy === enemies[i] && controlledEnemy.x < -100) {
       enemies.splice(i, 1);
       controlledEnemy = null;
       player.isControllingEnemy = false;

@@ -1,4 +1,4 @@
-const GAME_WIDTH = 1200;
+const GAME_WIDTH = 1100;
 const GAME_HEIGHT = 400;
 const JUMP_FORCE = 15;
 const GRAVITY = 0.5;
@@ -11,26 +11,40 @@ const GameState = {
   OVER: 'over'
 };
 
+const SelectedTheme = {
+  SUMMER: 'summer',
+  DESERT: 'desert',
+};
+
 let gameState = GameState.NOT_STARTED;
+let selectedTheme = SelectedTheme.SUMMER;
 
 let seconds = 0;
 let startTime;
 
 function setup() {
-  // Create the canvas selon la taille de l'écran
-  createCanvas(GAME_WIDTH / windowWidth + 1200, GAME_HEIGHT);
+  createCanvas(GAME_WIDTH, GAME_HEIGHT);
   player = new Player(PLAYER_START_X, PLAYER_START_Y);
 }
 
-function draw() {
-  background(220);
-  
+function draw() {  
   bgX -= 0.5;
-  image(backgroundImg, bgX % width, 150, width, height);
-  image(backgroundImg, (bgX % width) + width, 150, width, height);
-  image(backgroundImg, (bgX % width) + 2 * width, 150, width, height);
 
-  
+  background(0);
+
+  switch (selectedTheme) {
+    case SelectedTheme.DESERT:
+      image(backgroundImgDesert, bgX % width, 150, width, height);
+      image(backgroundImgDesert, (bgX % width) + width, 150, width, height);
+      image(backgroundImgDesert, (bgX % width) + 2 * width, 150, width, height);
+      break;
+    case SelectedTheme.SUMMER:
+      image(backgroundImgSummer, bgX % width, 150, width, height);
+      image(backgroundImgSummer, (bgX % width) + width, 150, width, height);
+      image(backgroundImgSummer, (bgX % width) + 2 * width, 150, width, height);
+      break;
+  }
+
   if (gameState === GameState.STARTED) {
     displayTimer();
   }
