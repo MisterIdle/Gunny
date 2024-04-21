@@ -41,12 +41,6 @@ function preload() {
 function setup() {
   createCanvas(GAME_WIDTH, GAME_HEIGHT);
   player = new Player(PLAYER_START_X, PLAYER_START_Y);
-  creditName();
-}
-
-function showSettingsSlider() {
-  let slider = createSlider(0, 100, 50);
-  slider.position(10, 100);
 }
 
 function draw() {
@@ -63,6 +57,10 @@ function draw() {
   if (gameOver) {
     bullets = [];
     displayGameOver();
+  }
+
+  if (keyIsDown(82)) {
+    restartGame();
   }
 
   player.handleInput();
@@ -93,16 +91,6 @@ function displayGameOver() {
   text("Game Over", width / 2, height / 2 - 100);
   text("Press R to restart", width / 2, height / 2 - 10);
   text("Time: " + seconds, width / 2, height / 2 - 50);
-
-  if (keyIsDown(82)) {
-    restartGame();
-  }
-}
-
-function displayCredits() {
-  textSize(16);
-  textAlign(LEFT, BOTTOM);
-  text("Game by: Alexy HOUBLOUP, Rémi PORTIER, Aurélie, Kerwyne", 10, height - 10);
 }
 
 function displayGround() {
@@ -129,7 +117,7 @@ function updateAndDisplayEnemies() {
       gameOver = true;
     }
 
-    if (controlledEnemy === enemies[i]) {
+    if (controlledEnemy === enemies[i] && !controlledEnemy.isJumping) {
       player.x = enemies[i].x;
     }
   }
@@ -142,8 +130,12 @@ function updateAndDisplayBullets() {
     
     if (player.collidesWithBullet(bullets[i])) {
       bullets.splice(i, 1);
-      enemies.splice(enemies.indexOf(controlledEnemy), 1);
+      controlledEnemy.isJumping = true;
       gameOver = true;
+
+      setTimeout(() => {
+        enemies.splice(enemies.indexOf(controlledEnemy), 1);
+      }, 800);
     }
   }
 
@@ -153,9 +145,13 @@ function updateAndDisplayBullets() {
 
     for (let j = enemies.length - 1; j >= 0; j--) {
       if (enemies[j].collidesWithBullet(playerBullets[i])) {
-        enemies.splice(j, 1);
+        enemies[j].isJumping = true;
         playerBullets.splice(i, 1);
         bullets = [];
+
+        setTimeout(() => {
+          enemies.splice(j, 1);
+        }, 800);
       }
     }
   }
@@ -188,7 +184,6 @@ class Player {
     this.horizontalSpeed = -1;
     this.sprite = playerSprite;
     this.isFlipped = false;
-    this.controlledEnemyTime = 0;
     this.controlledEnemy = null;
     this.lastShootTime = 0;
     this.shootDelay = 2000;
@@ -228,10 +223,14 @@ class Player {
     let distanceX = mouseX - this.x;
     this.jumpLength = map(abs(distanceX), 0, width, 0, 10);
 
-    if (this.isControllingEnemy && keyIsDown(32)) {
-      this.controlledEnemy = null;
-      enemies = enemies.filter(enemy => enemy !== controlledEnemy);
+    if (keyIsDown(32) && this.isControllingEnemy) {
       this.isControllingEnemy = false;
+      this.controlledEnemy.isJumping = true;
+      this.controlledEnemy = null;
+
+      setTimeout(() => {
+        enemies = enemies.filter(enemy => enemy !== controlledEnemy);
+      }, 800);
     }
   }
 
@@ -239,10 +238,6 @@ class Player {
     if (this.isJumping) {
       this.haveJumped = true;
       this.jump();
-
-      if (this.isControllingEnemy) {
-        this.controlledEnemyTime = millis();
-      }
 
       this.x += this.direction;
       this.x = constrain(this.x, 0, width);
@@ -256,7 +251,7 @@ class Player {
       this.y += this.gravity;
     }
 
-    if (controlledEnemy && controlledEnemy === this.controlledEnemy && (this.x <= -40 || this.x >= width)) {
+    if (this.x < -30 || this.x > width) {
       gameOver = true;
     }
 
@@ -353,24 +348,42 @@ class Enemy {
     this.lastShotTime = 0;
     this.initialShotDelay = random(700, 1500);
     this.timeSinceSpawn = millis();
+    this.isJumping = false;
+    this.jumpForce = 4;
   }
 
   update() {
     this.x -= this.speed;
 
-    if (millis() - this.timeSinceSpawn > this.initialShotDelay && millis() - this.lastShotTime > ENEMY_SHOOT_INTERVAL) {
+    if (this.isJumping) {
+      this.jump();
+    }
+
+    if (millis() - this.timeSinceSpawn > this.initialShotDelay && millis() - this.lastShotTime > ENEMY_SHOOT_INTERVAL && !this.isJumping) {
       this.shoot();
       this.lastShotTime = millis();
     }
+  }
+
+  jump() {
+    this.x += this.speed;
+    this.y -= this.jumpForce;
+    this.jumpForce -= GRAVITY;
   }
 
   display() {
     if (this.gif) {
       push();
       translate(this.x + this.gif.width / 3, this.y + this.gif.height / 3);
+     
       if (this.isFlipped) {
         scale(-1, 1);
       }
+
+      if(this.isJumping) {
+        rotate(radians(30));
+      }
+
       imageMode(CENTER);
       image(this.gif, 0, 0, 100, 100);
       pop();
@@ -383,17 +396,16 @@ class Enemy {
   }
 
   collidesWithBullet(playerBullet) {
-    if (this && playerBullet) {
+    if (playerBullet) {
       return this.x <= playerBullet.x + 20 && this.x + 0 >= playerBullet.x &&
              this.y <= playerBullet.y + 100 && this.y + 100 >= playerBullet.y;
     }
-    return false;
   }
 
   shoot() {
     if (this !== controlledEnemy && !gameOver) {
       if (controlledEnemy && abs(controlledEnemy.x - this.x) > 10) {
-        let bullet = new Bullet(this.x + 10, this.y + 50);
+        let bullet = new Bullet(this.x + 30, this.y + 57);
         bullets.push(bullet);
       }
     }
