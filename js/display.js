@@ -25,6 +25,8 @@ function displayTimer() {
   textSize(24);
   textAlign(LEFT, TOP);
   text("Time: " + seconds, 10, 10);
+  textAlign(RIGHT, TOP);
+  text("Distance: " + scoreDistance, 10,10)
 }
 
 function displayStartMessage() {
@@ -40,11 +42,12 @@ function displayGameOver() {
   textSize(30);
   textAlign(CENTER, CENTER);
   text("G a m e   O v e r", width / 2, height / 2 - 100);
-
-  text("Living Time: " + seconds, width / 2, height / 2 - 25);
-
+  textSize(20)
+  text("Living Time: " + seconds, width / 2, height / 2 - 45);
+  text("Ennemies captured: "+ scoreCapture, width / 2, height / 2 - 10)
+  text("Distance: " + scoreDistance, width / 2, height / 2 + 25)
   textSize(20);
-  text("Press R to restart", width / 2, height / 2 + 50 );
+  text("Press R to restart", width / 2, height / 2 + 100 );
 }
 
 function displayGround() {

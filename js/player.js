@@ -7,7 +7,6 @@ class Player {
     constructor(x, y) {
       this.x = x;
       this.y = y;
-      this.jumpHeight = 200;
       this.jumpForce = JUMP_FORCE;
       this.gravity = GRAVITY;
       this.isJumping = false;
@@ -16,7 +15,6 @@ class Player {
       this.rotationAngle = 0.0;
       this.direction = 0;
       this.isControllingEnemy = false;
-      this.horizontalSpeed = -1;
       this.sprite = playerSprite;
       this.isFlipped = false;
       this.controlledEnemy = null;
@@ -73,12 +71,19 @@ class Player {
         this.jump();
   
         this.x += this.direction;
+        //à vérifier (Alexy)
         this.x = constrain(this.x, 0, width);
   
         if (this.y < height - 75) {
           this.rotationAngle += 12;
         }
       }
+      if (this.x > 0 && this.isJumping)
+        scoreDistance ++;
+      else if (this.x < 0 && this.isJumping)
+        scoreDistance --;
+
+      console.log(scoreDistance)
   
       if (this.y < height - 75) {
         this.y += this.gravity;
@@ -97,6 +102,7 @@ class Player {
   
             if (this.isControllingEnemy) {
               enemies[i].changeSprite(mindduck);
+              scoreCapture ++;
             }
           }
         }
@@ -168,4 +174,3 @@ class Player {
       }, 500);
     }
 }
-  

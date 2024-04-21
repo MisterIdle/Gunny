@@ -5,6 +5,7 @@ const GRAVITY = 0.5;
 
 let bgX = 0;
 
+
 const GameState = {
   NOT_STARTED: 'not_started',
   STARTED: 'started',
@@ -21,6 +22,8 @@ let selectedTheme = SelectedTheme.SUMMER;
 
 let seconds = 0;
 let startTime;
+let scoreCapture = 0;
+let scoreDistance = 0;
 
 function setup() {
   createCanvas(GAME_WIDTH, GAME_HEIGHT);
@@ -78,5 +81,7 @@ function restartGame() {
   playerBullets = [];
   controlledEnemy = null;
   lastSpawnTime = 0;
+  scoreCapture = 0;
+  scoreDistance = 0;
   gameState = GameState.NOT_STARTED;
 }
