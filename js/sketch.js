@@ -27,24 +27,55 @@ let scoreDistance = 0;
 
 let gameOverSoundPlayed = false;
 
+function setCookie(name, value, days) {
+  let expires = "";
+  if (days) {
+    let date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    expires = "; expires=" + date.toUTCString();
+  }
+  document.cookie = name + "=" + encodeURIComponent(value || "") + expires + "; path=/; SameSite=None; Secure";
+}
+
+function getCookie(name) {
+  let nameEQ = name + "=";
+  let ca = document.cookie.split(';');
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
+  }
+  return null;
+}
+
+
 function setup() {
   createCanvas(GAME_WIDTH, GAME_HEIGHT);
   player = new Player(PLAYER_START_X, PLAYER_START_Y);
 
-  music.loop();
-  
-  // Only load the theme from the live server, not work on itch.io :(
-  const savedTheme = loadThemeFromCookie();
+  const savedTheme = getCookie("selectedTheme");
   if (savedTheme) {
     selectedTheme = savedTheme;
   }
+
+  selectTheme(selectedTheme);
+
+  const savedSfxVolume = getCookie("sfxVolume");
+  const savedMusicVolume = getCookie("musicVolume");
+
+  if (savedSfxVolume) {
+    document.getElementById("sfxVolume").value = savedSfxVolume;
+  }
+  if (savedMusicVolume) {
+    document.getElementById("musicVolume").value = savedMusicVolume;
+  }
+
+  music.loop();
 }
 
 function draw() {  
   bgX -= 0.5;
-
   background(0);
-
   switch (selectedTheme) {
     case SelectedTheme.DESERT:
       image(backgroundImgDesert, bgX % width, 150, width, height);
@@ -65,15 +96,12 @@ function draw() {
   if (gameState === GameState.STARTED) {
     displayTimer();
   }
-
   if (gameState === GameState.NOT_STARTED) {
     displayStartMessage();
   }
-
   if (gameState === GameState.OVER) {
     bullets = [];
     displayGameOver();
-
     if (!gameOverSoundPlayed) {
       deathSound.play();
       gameOverSoundPlayed = true;
@@ -89,31 +117,17 @@ function draw() {
   player.display();
 
   displayGround();
+
   theme();
   audioManager();
+
   updateAndDisplayEnemies();
   updateAndDisplayBullets();
-}
-
-function setThemeCookie(theme) {
-  document.cookie = `selectedTheme=${theme}; expires=Fri, 31 Dec 9999 23:59:59 GMT`;
-}
-
-function loadThemeFromCookie() {
-  const cookies = document.cookie.split(';').map(cookie => cookie.trim());
-  for (const cookie of cookies) {
-    const [name, value] = cookie.split('=');
-    if (name === 'selectedTheme') {
-      return value;
-    }
-  }
-  return null;
 }
 
 function audioManager() {
   const sfxVolumeControl = document.getElementById("sfxVolume");
   const sfxVolumeValue = parseFloat(sfxVolumeControl.value);
-
   const musicVolumeControl = document.getElementById("musicVolume");
   const musicVolumeValue = parseFloat(musicVolumeControl.value);
 
@@ -125,8 +139,10 @@ function audioManager() {
   mindSound.setVolume(sfxVolumeValue);
 
   music.setVolume(musicVolumeValue);
-}
 
+  setCookie("sfxVolume", sfxVolumeValue, 30);
+  setCookie("musicVolume", musicVolumeValue, 30);
+}
 
 function theme() {
   const desertButton = select('#theme1');
@@ -140,7 +156,7 @@ function theme() {
 
 function selectTheme(theme) {
   selectedTheme = theme;
-  setThemeCookie(theme);
+  setCookie("selectedTheme", theme, 30);
 }
 
 function restartGame() {

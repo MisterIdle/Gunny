@@ -22,7 +22,7 @@ class Player {
       this.shootDelay = 2000;
       this.isShooting = false;
     }
-  
+
     handleInput() {
       if (gameState === GameState.OVER) {
         return;
@@ -59,7 +59,7 @@ class Player {
       }
   
       let distanceX = mouseX - this.x;
-      this.jumpLength = map(abs(distanceX), 0, width, 0, 12);
+      this.jumpLength = abs(distanceX) / 60;
   
       if (keyIsDown(32) && this.isControllingEnemy) {
         this.isControllingEnemy = false;
