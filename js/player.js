@@ -30,6 +30,10 @@ class Player {
   
       if (keyIsDown(32) && gameState !== GameState.OVER) {
         this.isJumping = true;
+        
+        if (this.isJumping && !this.haveJumped && this.y === height - 75) {
+          jumpSound.play();
+        }
   
         if (gameState === GameState.NOT_STARTED) {
           startTime = millis();
@@ -40,6 +44,7 @@ class Player {
   
       if (keyIsDown(69) && !this.isShooting && millis() - this.lastShootTime > this.shootDelay && this.isControllingEnemy) {
         this.shoot();
+        shootSound.play();
         this.isShooting = true;
         this.lastShootTime = millis();
         setTimeout(() => { this.isShooting = false; }, 2000);
@@ -100,6 +105,7 @@ class Player {
   
             if (this.isControllingEnemy) {
               enemies[i].changeSprite(mindduck);
+              mindSound.play();
               scoreCapture ++;
             }
           }
@@ -111,7 +117,7 @@ class Player {
     jump() {
       this.y -= this.jumpForce;
       this.jumpForce -= this.gravity;
-  
+
       if (this.y >= height - 75) {
         this.y = height - 75;
         this.jumpForce = JUMP_FORCE;

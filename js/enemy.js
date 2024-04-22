@@ -81,6 +81,7 @@ class Enemy {
       if (gameState !== GameState.OVER) {
         if (this !== controlledEnemy && controlledEnemy && abs(controlledEnemy.x - this.x) > 10) {
           let bullet = new Bullet(this.x + 30, this.y + 57);
+          shootenemySound.play();
           bullets.push(bullet);
         }
       }

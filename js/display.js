@@ -5,6 +5,15 @@ let mindduck;
 let croco_nard;
 let pixelArtFont;
 
+let jumpSound;
+let deathSound;
+let shootSound;
+let shootenemySound;
+let hurtSound;
+let mindSound;
+
+let music;
+
 let backgroundImgDesert;
 let backgroundImgSummer;
 
@@ -14,9 +23,20 @@ function preload() {
   croco_nard = loadImage('img/croco_nard.gif');
   playerSprite = loadImage('img/gun.gif');
   bulletSprite = loadImage('img/bullet.png');
+
   pixelArtFont = loadFont('font/font.ttf');
+
   backgroundImgDesert = loadImage('img/backgrounddesert.png');
   backgroundImgSummer = loadImage('img/backgroundsummer.png');
+
+  jumpSound = loadSound('sound/jump.wav');
+  deathSound = loadSound('sound/death.wav');
+  shootSound = loadSound('sound/shoot.wav');
+  shootenemySound = loadSound('sound/shootenemy.wav');
+  hurtSound = loadSound('sound/hurt.wav');
+  mindSound = loadSound('sound/mind.wav');
+
+  music = loadSound('sound/music.mp3');
 }
 
 function displayTimer() {
@@ -127,6 +147,7 @@ function updateAndDisplayBullets() {
       if (enemies[j].collidesWithBullet(playerBullets[i])) {
         enemies[j].isJumping = true;
         playerBullets.splice(i, 1);
+        hurtSound.play();
         bullets = [];
 
         setTimeout(() => {

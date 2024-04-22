@@ -25,10 +25,15 @@ let startTime;
 let scoreCapture = 0;
 let scoreDistance = 0;
 
+let gameOverSoundPlayed = false;
+
 function setup() {
   createCanvas(GAME_WIDTH, GAME_HEIGHT);
   player = new Player(PLAYER_START_X, PLAYER_START_Y);
+
+  music.loop();
   
+  // Only load the theme from the live server, not work on itch.io :(
   const savedTheme = loadThemeFromCookie();
   if (savedTheme) {
     selectedTheme = savedTheme;
@@ -68,6 +73,11 @@ function draw() {
   if (gameState === GameState.OVER) {
     bullets = [];
     displayGameOver();
+
+    if (!gameOverSoundPlayed) {
+      deathSound.play();
+      gameOverSoundPlayed = true;
+    }
   }
 
   if (keyIsDown(82)) {
@@ -80,6 +90,7 @@ function draw() {
 
   displayGround();
   theme();
+  audioManager();
   updateAndDisplayEnemies();
   updateAndDisplayBullets();
 }
@@ -98,6 +109,24 @@ function loadThemeFromCookie() {
   }
   return null;
 }
+
+function audioManager() {
+  const sfxVolumeControl = document.getElementById("sfxVolume");
+  const sfxVolumeValue = parseFloat(sfxVolumeControl.value);
+
+  const musicVolumeControl = document.getElementById("musicVolume");
+  const musicVolumeValue = parseFloat(musicVolumeControl.value);
+
+  jumpSound.setVolume(sfxVolumeValue);
+  deathSound.setVolume(sfxVolumeValue);
+  shootSound.setVolume(sfxVolumeValue);
+  shootenemySound.setVolume(sfxVolumeValue);
+  hurtSound.setVolume(sfxVolumeValue);
+  mindSound.setVolume(sfxVolumeValue);
+
+  music.setVolume(musicVolumeValue);
+}
+
 
 function theme() {
   const desertButton = select('#theme1');
@@ -123,5 +152,6 @@ function restartGame() {
   lastSpawnTime = 0;
   scoreCapture = 0;
   scoreDistance = 0;
+  gameOverSoundPlayed = false;
   gameState = GameState.NOT_STARTED;
 }
