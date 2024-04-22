@@ -14,7 +14,7 @@ function preload() {
   croco_nard = loadImage('img/croco_nard.gif');
   playerSprite = loadImage('img/gun.gif');
   bulletSprite = loadImage('img/bullet.png');
-  pixelArtFont = loadFont('font/Daydream.ttf');
+  pixelArtFont = loadFont('font/font.ttf');
   backgroundImgDesert = loadImage('img/backgrounddesert.png');
   backgroundImgSummer = loadImage('img/backgroundsummer.png');
 }
@@ -24,13 +24,22 @@ function displayTimer() {
   seconds = Math.floor((millis() - startTime) / 1000);
   textSize(24);
   textAlign(LEFT, TOP);
-  text("Time: " + seconds, 10, 10);
-  textAlign(RIGHT, TOP);
-  text("Distance: " + scoreDistance, 10,10)
+  switch (selectedTheme) {
+    case SelectedTheme.DESERT:
+      text("Time: " + seconds, 10, 10);
+      break;
+    case SelectedTheme.SUMMER:
+      text("Time: " + seconds, 10, 10);
+      break;
+    case SelectedTheme.DEV:
+      fill(0, 0, 0, 255);
+      text("Time: " + seconds, 10, 10);
+      break;
+  }
 }
 
 function displayStartMessage() {
-  fill(0, 0, 0, 200);
+  fill(0, 0, 0, 255);
   textFont(pixelArtFont);
   textSize(24);
   textAlign(CENTER, CENTER);
@@ -38,44 +47,34 @@ function displayStartMessage() {
 }
 
 function displayGameOver() {
-  fill(255, 0, 0, 200);
-  textSize(30);
+  fill(200, 0, 0);
+  textSize(40);
   textAlign(CENTER, CENTER);
-  text("G a m e   O v e r", width / 2, height / 2 - 100);
+  text("G a m e   O v e r", width / 2, height / 2 - 10);
   textSize(20)
-  text("Living Time: " + seconds, width / 2, height / 2 - 45);
-  text("Ennemies captured: "+ scoreCapture, width / 2, height / 2 - 10)
-  text("Distance: " + scoreDistance, width / 2, height / 2 + 25)
+  text("Enemies captured: "+ scoreCapture, width / 2 - 350, height / 2 - 180)
+  text("Distance: " + scoreDistance + "m", width / 2 - 410, height / 2 - 140)
+  text("Living Time: " + seconds, width / 2 - 410 , height / 2 - 100 )
   textSize(20);
-  text("Press R to restart", width / 2, height / 2 + 100 );
+  text("Press R to restart", width / 2, height / 2 + 50);
 }
 
 function displayGround() {
   switch (selectedTheme) {
     case SelectedTheme.DESERT:
       fill(238,194,160);
-      beginShape();
-      stroke(238,194,160);
-      vertex(0, height);
-      vertex(0, height - 50);
-      for (let i = 0; i < width; i += 50) {
-        vertex(i, height - 50 + random(-2, 5));
-      }
-      endShape(CLOSE);
-    
-      rect(0, height - 50, width, 50);
+      rect(0, height - 50, width, 75);
+      noStroke();
+      break;
     case SelectedTheme.SUMMER:
       fill(107,160,20);
-      beginShape();
-      stroke(107,160,20);
-      vertex(0, height);
-      vertex(0, height - 50);
-      for (let i = 0; i < width; i += 50) {
-        vertex(i, height - 50 + random(-2, 5));
-      }
-      endShape(CLOSE);
-    
-      rect(0, height - 50, width, 50);
+      rect(0, height - 50, width, 75);
+      noStroke();
+      break;
+    case SelectedTheme.DEV:
+      fill(0);
+      rect(0, height - 45, width, 2);
+      break;
   }
 }
 

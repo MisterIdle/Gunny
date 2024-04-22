@@ -71,19 +71,17 @@ class Player {
         this.jump();
   
         this.x += this.direction;
-        //à vérifier (Alexy)
         this.x = constrain(this.x, 0, width);
   
         if (this.y < height - 75) {
           this.rotationAngle += 12;
         }
       }
-      if (this.x > 0 && this.isJumping)
+      if (this.x > 0 && this.isJumping) {
         scoreDistance ++;
-      else if (this.x < 0 && this.isJumping)
+      } else if (this.x < 0 && this.isJumping) {
         scoreDistance --;
-
-      console.log(scoreDistance)
+      }
   
       if (this.y < height - 75) {
         this.y += this.gravity;
