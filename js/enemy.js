@@ -3,7 +3,7 @@ const ENEMY_START_Y = GAME_HEIGHT - 130;
 const ENEMY_SPEED_MIN = 1;
 const ENEMY_SPEED_MAX = 3;
 const ENEMY_SHOOT_INTERVAL = 3000;
-const SPAWN_INTERVAL = 3000;
+const SPAWN_INTERVAL = 2700;
 
 let enemies = [];
 let lastSpawnTime = 0;

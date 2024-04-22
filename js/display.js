@@ -67,16 +67,18 @@ function displayStartMessage() {
 }
 
 function displayGameOver() {
-  fill(200, 0, 0);
+  fill(200, 0, 0, 255);
   textSize(40);
   textAlign(CENTER, CENTER);
   text("G a m e   O v e r", width / 2, height / 2 - 10);
-  textSize(20)
-  text("Enemies captured: "+ scoreCapture, width / 2 - 350, height / 2 - 180)
-  text("Distance: " + scoreDistance + "m", width / 2 - 410, height / 2 - 140)
-  text("Living Time: " + seconds, width / 2 - 410 , height / 2 - 100 )
-  textSize(20);
+  textSize(24);
   text("Press R to restart", width / 2, height / 2 + 50);
+  fill(255);
+  textSize(20)
+  textAlign(LEFT, CENTER)
+  text("Enemies captured:  "+ scoreCapture + " / " + bestScoreCapture, width / 2 - 540, height / 2 - 180)
+  text("Distance:  " + scoreDistance + "m / " + bestScoreDistance + "m", width / 2 - 540, height / 2 - 140)
+  text("Living Time:  " + seconds + " / " + bestSeconds, width / 2 - 540 , height / 2 - 100 )
 }
 
 function displayGround() {
@@ -87,7 +89,7 @@ function displayGround() {
       noStroke();
       break;
     case SelectedTheme.SUMMER:
-      fill(107,160,20);
+      fill(90,190,49,255)
       rect(0, height - 50, width, 75);
       noStroke();
       break;

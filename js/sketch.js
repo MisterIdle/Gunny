@@ -25,6 +25,10 @@ let startTime;
 let scoreCapture = 0;
 let scoreDistance = 0;
 
+let bestSeconds = 0;
+let bestScoreCapture = 0;
+let bestScoreDistance = 0;
+
 let gameOverSoundPlayed = false;
 
 function setCookie(name, value, days) {
@@ -70,8 +74,23 @@ function setup() {
     document.getElementById("musicVolume").value = savedMusicVolume;
   }
 
+  const savedBestSeconds = getCookie("bestSeconds");
+  const savedBestScoreCapture = getCookie("bestScoreCapture");
+  const savedBestScoreDistance = getCookie("bestScoreDistance");
+
+  if (savedBestSeconds) {
+    bestSeconds = parseInt(savedBestSeconds);
+  }
+  if (savedBestScoreCapture) {
+    bestScoreCapture = parseInt(savedBestScoreCapture);
+  }
+  if (savedBestScoreDistance) {
+    bestScoreDistance = parseInt(savedBestScoreDistance);
+  }
+
   music.loop();
 }
+
 
 function draw() {  
   bgX -= 0.5;
@@ -120,9 +139,28 @@ function draw() {
 
   theme();
   audioManager();
-
+  
   updateAndDisplayEnemies();
   updateAndDisplayBullets();
+  updateBestScore();
+}
+
+function updateBestScore() {
+  if (seconds > bestSeconds) {
+    bestSeconds = seconds;
+  }
+
+  if (scoreCapture > bestScoreCapture) {
+    bestScoreCapture = scoreCapture;
+  }
+
+  if (scoreDistance > bestScoreDistance) {
+    bestScoreDistance = scoreDistance;
+  }
+
+  setCookie("bestSeconds", bestSeconds, 30);
+  setCookie("bestScoreCapture", bestScoreCapture, 30);
+  setCookie("bestScoreDistance", bestScoreDistance, 30);
 }
 
 function audioManager() {

@@ -106,7 +106,7 @@ class Player {
             if (this.isControllingEnemy) {
               enemies[i].changeSprite(mindduck);
               mindSound.play();
-              scoreCapture ++;
+              scoreCapture++;
             }
           }
         }

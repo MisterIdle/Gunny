@@ -28,6 +28,14 @@ h2 {
   font-size: 30px;
 }
 
+.username h1 {
+  position: absolute;
+  top: 5px;
+  left: 100px;
+  color: white;
+  font-size: 30px;
+}
+
 .controlSFX {
   position: absolute;
   display: flex;
