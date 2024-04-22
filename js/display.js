@@ -46,13 +46,29 @@ function displayTimer() {
   textAlign(LEFT, TOP);
   switch (selectedTheme) {
     case SelectedTheme.DESERT:
+      if(seconds < bestSeconds) {
+        fill(255);
+      } else {
+        fill(0, 255, 0);
+      }
       text("Time: " + seconds, 10, 10);
       break;
+
     case SelectedTheme.SUMMER:
+      if(seconds < bestSeconds) {
+        fill(255);
+      } else {
+        fill(0, 255, 0);
+      }
       text("Time: " + seconds, 10, 10);
       break;
+
     case SelectedTheme.DEV:
-      fill(0, 0, 0, 255);
+      if(seconds < bestSeconds) {
+        fill(0);
+      } else {
+        fill(0, 150, 0);
+      }
       text("Time: " + seconds, 10, 10);
       break;
   }
@@ -73,9 +89,20 @@ function displayGameOver() {
   text("G a m e   O v e r", width / 2, height / 2 - 10);
   textSize(24);
   text("Press R to restart", width / 2, height / 2 + 50);
-  fill(255);
+
   textSize(20)
   textAlign(LEFT, CENTER)
+  switch (selectedTheme) {
+    case SelectedTheme.DESERT:
+      fill(255);
+      break;
+    case SelectedTheme.SUMMER:
+      fill(255);
+      break;
+    case SelectedTheme.DEV:
+      fill(0);
+      break;
+  }
   text("Enemies captured:  "+ scoreCapture + " / " + bestScoreCapture, width / 2 - 540, height / 2 - 180)
   text("Distance:  " + scoreDistance + "m / " + bestScoreDistance + "m", width / 2 - 540, height / 2 - 140)
   text("Living Time:  " + seconds + " / " + bestSeconds, width / 2 - 540 , height / 2 - 100 )
