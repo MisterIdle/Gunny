@@ -11,11 +11,14 @@ let shootSound;
 let shootenemySound;
 let hurtSound;
 let mindSound;
+let bestscoreSound;
 
 let music;
 
 let backgroundImgDesert;
 let backgroundImgSummer;
+
+let bestScoreAchieved = false;
 
 function preload() {
   akaquak = loadImage('img/akaquak.gif');
@@ -35,6 +38,7 @@ function preload() {
   shootenemySound = loadSound('sound/shootenemy.wav');
   hurtSound = loadSound('sound/hurt.wav');
   mindSound = loadSound('sound/mind.wav');
+  bestscoreSound = loadSound('sound/bestscore.wav');
 
   music = loadSound('sound/music.mp3');
 }
@@ -50,6 +54,7 @@ function displayTimer() {
         fill(255);
       } else {
         fill(0, 255, 0);
+
       }
       text("Time: " + seconds, 10, 10);
       break;
@@ -72,6 +77,8 @@ function displayTimer() {
       text("Time: " + seconds, 10, 10);
       break;
   }
+
+  checkBestScore();
 }
 
 function displayStartMessage() {
@@ -112,12 +119,12 @@ function displayGround() {
   switch (selectedTheme) {
     case SelectedTheme.DESERT:
       fill(238,194,160);
-      rect(0, height - 50, width, 75);
+      rect(0, height - 55, width, 100);
       noStroke();
       break;
     case SelectedTheme.SUMMER:
       fill(90,190,49,255)
-      rect(0, height - 50, width, 75);
+      rect(0, height - 55, width, 75);
       noStroke();
       break;
     case SelectedTheme.DEV:
@@ -184,5 +191,12 @@ function updateAndDisplayBullets() {
         }, 800);
       }
     }
+  }
+}
+
+function checkBestScore() {
+  if (seconds === bestSeconds && !bestScoreAchieved) {
+    bestscoreSound.play();
+    bestScoreAchieved = true;
   }
 }

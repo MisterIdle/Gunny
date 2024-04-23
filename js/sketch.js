@@ -31,28 +31,6 @@ let bestScoreDistance = 0;
 
 let gameOverSoundPlayed = false;
 
-function setCookie(name, value, days) {
-  let expires = "";
-  if (days) {
-    let date = new Date();
-    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-    expires = "; expires=" + date.toUTCString();
-  }
-  document.cookie = name + "=" + encodeURIComponent(value || "") + expires + "; path=/; SameSite=None; Secure";
-}
-
-function getCookie(name) {
-  let nameEQ = name + "=";
-  let ca = document.cookie.split(';');
-  for (let i = 0; i < ca.length; i++) {
-    let c = ca[i];
-    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-    if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
-  }
-  return null;
-}
-
-
 function setup() {
   createCanvas(GAME_WIDTH, GAME_HEIGHT);
   player = new Player(PLAYER_START_X, PLAYER_START_Y);
@@ -91,9 +69,8 @@ function setup() {
   music.loop();
 }
 
-
 function draw() {  
-  bgX -= 0.5;
+  bgX -= 0.3;
   background(0);
   switch (selectedTheme) {
     case SelectedTheme.DESERT:
@@ -158,9 +135,9 @@ function updateBestScore() {
     bestScoreDistance = scoreDistance;
   }
 
-  setCookie("bestSeconds", bestSeconds, 30);
-  setCookie("bestScoreCapture", bestScoreCapture, 30);
-  setCookie("bestScoreDistance", bestScoreDistance, 30);
+  setCookie("bestSeconds", bestSeconds);
+  setCookie("bestScoreCapture", bestScoreCapture);
+  setCookie("bestScoreDistance", bestScoreDistance);
 }
 
 function audioManager() {
@@ -178,8 +155,8 @@ function audioManager() {
 
   music.setVolume(musicVolumeValue);
 
-  setCookie("sfxVolume", sfxVolumeValue, 30);
-  setCookie("musicVolume", musicVolumeValue, 30);
+  setCookie("sfxVolume", sfxVolumeValue);
+  setCookie("musicVolume", musicVolumeValue);
 }
 
 function theme() {
@@ -194,7 +171,7 @@ function theme() {
 
 function selectTheme(theme) {
   selectedTheme = theme;
-  setCookie("selectedTheme", theme, 30);
+  setCookie("selectedTheme", theme);
 }
 
 function restartGame() {
@@ -207,5 +184,6 @@ function restartGame() {
   scoreCapture = 0;
   scoreDistance = 0;
   gameOverSoundPlayed = false;
+  bestScoreAchieved = false;
   gameState = GameState.NOT_STARTED;
 }

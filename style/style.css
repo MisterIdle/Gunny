@@ -70,17 +70,6 @@ input[type="range"] {
   width: 200px;
 }
 
-input[type="range"]:hover {
-  transform: scale(1.1);
-  transition: transform 0.1s;
-  cursor: pointer;
-}
-
-input[type="range"]:active {
-  transform: scale(1.2);
-  transition: transform 0.1s;
-  cursor: pointer;
-}
 
 .themeSelector {
   position: absolute;

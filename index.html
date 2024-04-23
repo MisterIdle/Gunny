@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gunny</title>
-    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" type="text/css" href="style/style.css">
     <script src="libraries/p5.min.js"></script>
     <script src="libraries/p5.sound.min.js"></script>
 </head>
@@ -14,18 +14,20 @@
     <script src="js/enemy.js"></script>
     <script src="js/bullets.js"></script>
     <script src="js/display.js"></script>
+    <script src="js/cookie.js"></script>
+    <script src="js/cheat.js"></script>
 
     <h1>Gunny [ver 1.0]</h1>
 
     <div class="controlWrapper">
         <div class="controlMusic">
             <label for="musicVolume">Music:</label>
-            <input type="range" id="musicVolume" min="0.001" max="2" step="0.01" value="1">
+            <input type="range" id="musicVolume" min="0" max="1" step="0.01" value="0.5">
         </div>
         
         <div class="controlSFX">
             <label for="sfxVolume">SFX:</label>
-            <input type="range" id="sfxVolume" min="0.001" max="2" step="0.01" value="1">
+            <input type="range" id="sfxVolume" min="0" max="1" step="0.01" value="0.5">
         </div>
     </div>
 
