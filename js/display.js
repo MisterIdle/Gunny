@@ -2,6 +2,8 @@
 // Code by Alexy (MisterIdle) //
 ////////////////////////////////
 
+// TEST PUSH
+
 // Variables to hold images and sounds
 let playerSprite;
 let bulletSprite;
