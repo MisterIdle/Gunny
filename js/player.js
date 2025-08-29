@@ -25,6 +25,7 @@ class Player {
     this.lastShootTime = 0;
     this.shootDelay = 2000;
     this.isShooting = false;
+    this.tutorialShown = false;
   }
 
   // Method to handle player input
@@ -78,55 +79,54 @@ class Player {
     }
   }
   
-  // Method to update player position and behavior
   update() {
-    // Update player position during jump
-    if (this.isJumping) {
-      this.haveJumped = true;
-      this.jump();
-  
-      this.x += this.direction;
-      this.x = constrain(this.x, 0, width);
-  
-      if (this.y < height - 75) {
-        this.rotationAngle += 12;
-      }
-    }
-    
-    // Update distance traveled if player is jumping
-    if (this.x > 0 && this.isJumping) {
-      scoreDistance ++;
-    } else if (this.x < 0 && this.isJumping) {
-      scoreDistance --;
-    }
-  
-    // Apply gravity if player is in the air
-    if (this.y < height - 75) {
-      this.y += this.gravity;
-    }
-  
-    // End game if player goes out of bounds
-    if (this.x < -40 || this.x > width) {
-      gameState = GameState.OVER;
-    }
-  
-    // Check collision with enemies and handle enemy control
-    for (let i = enemies.length - 1; i >= 0; i--) {
-      if (this.collidesWithEnemy(enemies[i])) {
-        if (this.isJumping && !this.isControllingEnemy && !this.controlledEnemy && !enemies[i].isCrocoNard) {
-          this.controlledEnemy = enemies[i];
-          controlledEnemy = enemies[i];
-          this.isControllingEnemy = true;
-  
-          if (this.isControllingEnemy) {
-            enemies[i].changeSprite(mindduck);
-            mindSound.play();
-            scoreCapture++;
+      if (this.isJumping) {
+          this.haveJumped = true;
+          this.jump();
+          this.x += this.direction;
+          this.x = constrain(this.x, 0, width);
+
+          if (this.y < height - 75) {
+              this.rotationAngle += 12;
           }
-        }
       }
-    }
+
+      if (this.x > 0 && this.isJumping) {
+          scoreDistance ++;
+      } else if (this.x < 0 && this.isJumping) {
+          scoreDistance --;
+      }
+
+      if (this.y < height - 75) {
+          this.y += this.gravity;
+      }
+
+      if (this.x < -40 || this.x > width) {
+          gameState = GameState.OVER;
+      }
+
+      for (let i = enemies.length - 1; i >= 0; i--) {
+          if (this.collidesWithEnemy(enemies[i])) {
+              if (this.isJumping && !this.isControllingEnemy && !this.controlledEnemy && !enemies[i].isCrocoNard) {
+                  this.controlledEnemy = enemies[i];
+                  controlledEnemy = enemies[i];
+                  this.isControllingEnemy = true;
+
+                  if (this.isControllingEnemy) {
+                      enemies[i].changeSprite(mindduck);
+                      mindSound.play();
+                      scoreCapture++;
+
+                      if (scoreCapture === 1 && !this.tutorialShown) {
+                          this.tutorialShown = true;
+                          setTimeout(() => { this.tutorialShown = false; }, 5000);
+                      }
+                  }
+              }
+          }
+      }
   }
+
   
   // Method to handle player jump
   jump() {
@@ -153,7 +153,6 @@ class Player {
   
   // Method to display the player
   display() {
-    // Display player sprite
     if (!this.isControllingEnemy) {
       imageMode(CENTER);
       if (this.isFlipped) {
@@ -172,7 +171,42 @@ class Player {
       }
     }
   }
-  
+
+  displayTrajectory() {
+    // Do not display trajectory if player is in the air
+    if (this.y < height - 75 || gameState === GameState.OVER) {
+      return;
+    }
+    // Pixel art style: use small squares and limited palette, fade red
+    let controlX = (this.x + mouseX) / 2;
+    let controlY = min(this.y, mouseY) - 120;
+
+    let dotCount = 7;
+    let duration = 1200;
+
+    for (let i = 0; i < dotCount; i++) {
+      let phase = (millis() + i * (duration / dotCount)) % duration;
+      let animT = phase / duration;
+
+      let dotX = (1 - animT) * (1 - animT) * this.x + 2 * (1 - animT) * animT * controlX + animT * animT * mouseX;
+      let dotY = (1 - animT) * (1 - animT) * this.y + 2 * (1 - animT) * animT * controlY + animT * animT * (height - 75);
+
+      let pxSize = 10 + 2 * (i % 2); // alternate pixel size for "chunky" look
+
+      // Fade red: alpha decreases for later dots
+      let alpha = map(i, 0, dotCount - 1, 255, 60);
+      noStroke();
+      fill(255, 0, 0, alpha);
+      rect(dotX - pxSize / 2, dotY - pxSize / 2, pxSize, pxSize);
+
+      // Add a red highlight pixel for extra pixel-art effect, also faded
+      if (i % 3 === 0) {
+        fill(255, 0, 0, alpha);
+        rect(dotX - 2, dotY - 2, 4, 4);
+      }
+    }
+  }
+
   // Method to check collision with enemies
   collidesWithEnemy(enemy) {
     return this.x <= enemy.x + 100 && this.x + 20 >= enemy.x &&

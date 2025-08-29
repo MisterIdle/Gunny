@@ -131,6 +131,10 @@ function draw() {
     displayStartMessage();
   }
 
+  if (player.tutorialShown && gameState !== GameState.OVER) {
+    displayTutorial();
+  }
+
   if (gameState === GameState.OVER) {
     bullets = [];
     displayGameOver();
@@ -158,6 +162,8 @@ function draw() {
   updateAndDisplayEnemies();
   updateAndDisplayBullets();
   updateBestScore();
+
+  displayPlayerTrajectory();
 }
 
 // Function to display the timer

@@ -95,40 +95,67 @@ function displayTimer() {
 
 // Function to display start message
 function displayStartMessage() {
-    // Display message to start the game
-    fill(0, 0, 0, 255);
+    strokeWeight(3);
+    fill(0, 0, 0, 120);
+    rect(width / 2 - 320, height / 2 - 150, 640, 240, 0);
+    noStroke();
+
+    fill(255, 255, 255, 255);
     textFont(pixelArtFont);
     textSize(24);
     textAlign(CENTER, CENTER);
-    text("Press space to start", width / 2, height / 2);
+    text("Press SPACE to jump & start", width / 2, height / 2 - 100);
+    text("Aim with mouse", width / 2, height / 2 - 60);
+    fill(255, 204, 0);
+    text("Capture an Aquaquak!", width / 2, height / 2 - 20);
+    fill(0, 0, 0, 255);
+
+    textSize(20);
+    fill(255, 255, 255, 255);
+    text("Best Time: " + bestSeconds, width / 2, height / 2 + 40);
+}
+
+function displayTutorial() {
+    strokeWeight(3);
+    fill(0, 0, 0, 120);
+    rect(width / 2 - 320, height / 2 - 80, 640, 180, 0);
+    noStroke();
+
+    fill(255, 255, 255, 255);
+    textFont(pixelArtFont);
+    textSize(22);
+    textAlign(CENTER, CENTER);
+    text("Press E to shoot", width / 2, height / 2 - 30);
+    fill(255, 204, 0);
+    text("Capture other Aquaquaks!", width / 2, height / 2 + 10);
+    fill(0, 255, 0);
+    text("Avoid Croco-nard!", width / 2, height / 2 + 50);
+    fill(0, 0, 0, 255); // Reset fill for next text
 }
 
 // Function to display game over message
 function displayGameOver() {
-    // Display game over message
+    strokeWeight(3);
+    fill(0, 0, 0, 120);
+    rect(width / 2 - 320, height / 2 - 150, 640, 240, 0);
+    noStroke();
+
     fill(200, 0, 0, 255);
+    textFont(pixelArtFont);
     textSize(40);
     textAlign(CENTER, CENTER);
-    text("G a m e   O v e r", width / 2, height / 2 - 10);
+    text("G a m e   O v e r", width / 2, height / 2 - 120);
+
     textSize(24);
-    text("Press R to restart", width / 2, height / 2 + 50);
-    // Display scores
-    textSize(20)
-    textAlign(LEFT, CENTER)
-    switch (selectedTheme) {
-        case SelectedTheme.DESERT:
-            fill(255);
-            break;
-        case SelectedTheme.SUMMER:
-            fill(255);
-            break;
-        case SelectedTheme.DEV:
-            fill(0);
-            break;
-    }
-    text("Enemies captured:  "+ scoreCapture + " / " + bestScoreCapture, width / 2 - 540, height / 2 - 180)
-    text("Distance:  " + scoreDistance + "m / " + bestScoreDistance + "m", width / 2 - 540, height / 2 - 140)
-    text("Living Time:  " + seconds + " / " + bestSeconds, width / 2 - 540 , height / 2 - 100 )
+    fill(255, 255, 255, 255);
+    text("Press R to restart", width / 2, height / 2 - 60);
+
+    textSize(20);
+    textAlign(LEFT, CENTER);
+    fill(255);
+    text("Enemies captured:  " + scoreCapture + " / " + bestScoreCapture, width / 2 - 240, height / 2 + 0);
+    text("Distance:  " + scoreDistance + "m / " + bestScoreDistance + "m", width / 2 - 240, height / 2 + 30);
+    text("Living Time:  " + seconds + " / " + bestSeconds, width / 2 - 240, height / 2 + 60);
 }
 
 // Function to display ground based on selected theme
@@ -151,13 +178,21 @@ function displayGround() {
     }
 }
 
-// Function to update and display enemies
 function updateAndDisplayEnemies() {
     // Spawn enemies at intervals
     if (millis() - lastSpawnTime > random(SPAWN_INTERVAL, SPAWN_INTERVAL + 4000)) {
-        enemies.push(new Enemy());
+        let enemy = new Enemy();
+
+        // Si le jeu n'a pas commencé, forcer le spawn d'un Akaquak
+        if (gameState === GameState.NOT_STARTED) {
+            enemy.gif = akaquak;
+            enemy.isCrocoNard = false;
+        }
+
+        enemies.push(enemy);
         lastSpawnTime = millis();
     }
+
     // Update and display each enemy
     for (let i = enemies.length - 1; i >= 0; i--) {
         enemies[i].update();
@@ -173,10 +208,11 @@ function updateAndDisplayEnemies() {
         }
         // Control player position if riding an enemy
         if (controlledEnemy === enemies[i] && !controlledEnemy.isJumping) {
-            player.x = enemies[i].x;
+            player.x = enemies[i].x + 50;
         }
     }
 }
+
 
 // Function to update and display bullets
 function updateAndDisplayBullets() {
@@ -213,6 +249,10 @@ function updateAndDisplayBullets() {
             }
         }
     }
+}
+
+function displayPlayerTrajectory() {
+    player.displayTrajectory();
 }
 
 // Function to check for best score
